@@ -1,0 +1,22 @@
+BAYAT Smart Network Optimizer v1.1.0 - Derleme paketi
+
+ONEMLI: ZIP dosyasini sag tiklayip Tumunu Ayikla ile ayiklayin.
+Ayiklama tamamlaninca SmartNetworkOptimizer klasorunu acin.
+EXE-OLUSTUR.bat ve build-exe.ps1 ayni ana klasorde bulunmalidir.
+BAT dosyasini masaustune tek basina kopyalayip calistirmayin.
+
+Dogru konum ornegi:
+Masaustu\SmartNetworkOptimizer\EXE-OLUSTUR.bat
+Masaustu\SmartNetworkOptimizer\build-exe.ps1
+Masaustu\SmartNetworkOptimizer\src\SmartNetworkOptimizer\SmartNetworkOptimizer.csproj
+
+EXE-OLUSTUR.bat dosyasina cift tiklayin. Betik once gerekli dosyalari
+kontrol eder; eksik dosya varsa derlemeye baslamadan hata verir.
+Ilk calistirmada .NET 10 SDK ve NuGet paketlerini indirmek icin internet
+baglantisi gerekir. Yonetici izni istenmez.
+
+Basarili derleme sonrasi EXE:
+artifacts\win-x64\SmartNetworkOptimizer.exe
+
+Bu paket kaynak kod ve derleme araclarini icerir; onceden derlenmis EXE
+icermez. EXE Windows bilgisayarda derleme sonrasi olusturulur.

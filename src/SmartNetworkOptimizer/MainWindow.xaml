@@ -1,0 +1,279 @@
+<!-- Copyright (C) 2026 BAYAT -->
+<!-- SPDX-License-Identifier: GPL-3.0-only -->
+<!-- See LICENSE.txt for the full license text. -->
+<Window x:Class="SmartNetworkOptimizer.MainWindow"
+        xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        Title="BAYAT | Smart Network Optimizer v1.1.0" Height="920" Width="1440"
+        MinHeight="760" MinWidth="1120" WindowStartupLocation="CenterScreen"
+        Background="#F3F6FB">
+    <Window.Resources>
+        <Style TargetType="{x:Type Button}">
+            <Setter Property="Padding" Value="13,9" />
+            <Setter Property="Margin" Value="0,0,8,8" />
+            <Setter Property="FontSize" Value="12" />
+            <Setter Property="FontWeight" Value="SemiBold" />
+            <Setter Property="BorderThickness" Value="0" />
+            <Setter Property="Background" Value="#E8EEF7" />
+            <Setter Property="Foreground" Value="#17243C" />
+            <Setter Property="Cursor" Value="Hand" />
+        </Style>
+        <Style x:Key="CardBorder" TargetType="Border">
+            <Setter Property="Background" Value="White" />
+            <Setter Property="CornerRadius" Value="13" />
+            <Setter Property="Padding" Value="16" />
+            <Setter Property="Margin" Value="0,0,12,12" />
+        </Style>
+        <Style x:Key="MetricTitle" TargetType="TextBlock">
+            <Setter Property="Foreground" Value="#64748B" />
+            <Setter Property="FontSize" Value="12" />
+            <Setter Property="FontWeight" Value="SemiBold" />
+        </Style>
+        <Style x:Key="MetricValue" TargetType="TextBlock">
+            <Setter Property="Foreground" Value="#14213D" />
+            <Setter Property="FontSize" Value="25" />
+            <Setter Property="FontWeight" Value="Bold" />
+            <Setter Property="Margin" Value="0,6,0,0" />
+        </Style>
+    </Window.Resources>
+
+    <Grid Margin="20">
+        <Grid.RowDefinitions>
+            <RowDefinition Height="Auto" />
+            <RowDefinition Height="*" />
+            <RowDefinition Height="Auto" />
+        </Grid.RowDefinitions>
+
+        <Border Grid.Row="0" Background="#14213D" CornerRadius="15" Padding="20" Margin="0,0,0,14">
+            <Grid>
+                <Grid.ColumnDefinitions>
+                    <ColumnDefinition Width="*" />
+                    <ColumnDefinition Width="Auto" />
+                </Grid.ColumnDefinitions>
+                <StackPanel>
+                    <TextBlock Text="BAYAT SMART NETWORK OPTIMIZER" Foreground="White" FontSize="22" FontWeight="Bold" />
+                    <TextBlock Text="Kişiye özel Windows ağ analizi • Kontrollü optimizasyon • Ölçülebilir sonuçlar"
+                               Foreground="#C8D5E8" FontSize="12" Margin="0,5,0,0" />
+                    <TextBlock Text="v1.1.0  |  Yerel analiz — verileriniz bu bilgisayarda kalır"
+                               Foreground="#8FA5C2" FontSize="10" Margin="0,5,0,0" />
+                </StackPanel>
+                <Button x:Name="ScanButton" Grid.Column="1" Content="SİSTEMİ TARA" Click="ScanButton_Click"
+                        Background="#3B82F6" Foreground="White" VerticalAlignment="Center" Padding="22,12" />
+            </Grid>
+        </Border>
+
+        <TabControl Grid.Row="1" Background="Transparent" BorderThickness="0" Padding="4">
+            <TabItem Header="BAYAT | Genel Bakış">
+                <ScrollViewer VerticalScrollBarVisibility="Auto">
+                    <StackPanel Margin="6,12,6,4">
+                        <UniformGrid Columns="4" Rows="1">
+                            <Border Style="{StaticResource CardBorder}">
+                                <StackPanel><TextBlock Style="{StaticResource MetricTitle}" Text="BAYAT | SON AĞ GEÇİDİ PING'İ" />
+                                    <TextBlock x:Name="LiveLastText" Style="{StaticResource MetricValue}" Text="— ms" />
+                                    <TextBlock Text="Yerel ağ ölçümü" Foreground="#94A3B8" FontSize="10" /></StackPanel>
+                            </Border>
+                            <Border Style="{StaticResource CardBorder}">
+                                <StackPanel><TextBlock Style="{StaticResource MetricTitle}" Text="BAYAT | SON 60 ÖRNEK ORTALAMASI" />
+                                    <TextBlock x:Name="LiveAverageText" Style="{StaticResource MetricValue}" Text="— ms" />
+                                    <TextBlock Text="Başarılı ICMP yanıtları" Foreground="#94A3B8" FontSize="10" /></StackPanel>
+                            </Border>
+                            <Border Style="{StaticResource CardBorder}">
+                                <StackPanel><TextBlock Style="{StaticResource MetricTitle}" Text="BAYAT | ÖLÇÜLEN KAYIP" />
+                                    <TextBlock x:Name="LiveLossText" Style="{StaticResource MetricValue}" Text="— %" />
+                                    <TextBlock Text="Yalnızca bu test örneklerinde" Foreground="#94A3B8" FontSize="10" /></StackPanel>
+                            </Border>
+                            <Border Style="{StaticResource CardBorder}">
+                                <StackPanel><TextBlock Style="{StaticResource MetricTitle}" Text="BAYAT | SON 60 ÖRNEK JITTER TAHMİNİ" />
+                                    <TextBlock x:Name="LiveJitterText" Style="{StaticResource MetricValue}" Text="— ms" />
+                                    <TextBlock x:Name="LiveSamplesText" Text="0 / 60 örnek" Foreground="#94A3B8" FontSize="10" Margin="0,4,0,0" /></StackPanel>
+                            </Border>
+                        </UniformGrid>
+
+                        <Grid Margin="0,4,0,0">
+                            <Grid.ColumnDefinitions>
+                                <ColumnDefinition Width="3*" />
+                                <ColumnDefinition Width="1.15*" />
+                            </Grid.ColumnDefinitions>
+                            <Border Grid.Column="0" Style="{StaticResource CardBorder}" Padding="18">
+                                <StackPanel>
+                                    <DockPanel LastChildFill="False" Margin="0,0,0,12">
+                                        <StackPanel DockPanel.Dock="Left">
+                                            <TextBlock Text="BAYAT | CANLI AĞ GEÇİDİ GECİKMESİ" FontSize="14" FontWeight="Bold" Foreground="#14213D" />
+                                            <TextBlock x:Name="LiveTargetInfoText" Text="Sistem taraması bekleniyor" FontSize="11" Foreground="#64748B" Margin="0,4,0,0" />
+                                        </StackPanel>
+                                        <StackPanel DockPanel.Dock="Right" Orientation="Horizontal" VerticalAlignment="Center">
+                                            <Button x:Name="LiveStartButton" Content="İZLEMEYİ BAŞLAT" Click="LiveStartButton_Click" Background="#DCFCE7" />
+                                            <Button x:Name="LiveStopButton" Content="DURDUR" Click="LiveStopButton_Click" IsEnabled="False" />
+                                            <Button x:Name="LiveClearButton" Content="TEMİZLE" Click="LiveClearButton_Click" />
+                                        </StackPanel>
+                                    </DockPanel>
+                                    <Border Background="#0F172A" CornerRadius="9" Padding="8">
+                                        <Canvas x:Name="LiveChartCanvas" Height="300" Background="#0F172A" ClipToBounds="True"
+                                                SizeChanged="LiveChartCanvas_SizeChanged" />
+                                    </Border>
+                                    <DockPanel Margin="2,9,2,0">
+                                        <TextBlock Text="0 sn" Foreground="#94A3B8" FontSize="10" DockPanel.Dock="Left" />
+                                        <TextBlock Text="Son 60 örnek • 1 örnek/sn • ICMP" Foreground="#94A3B8" FontSize="10" HorizontalAlignment="Center" />
+                                        <TextBlock Text="60 sn" Foreground="#94A3B8" FontSize="10" DockPanel.Dock="Right" />
+                                    </DockPanel>
+                                </StackPanel>
+                            </Border>
+
+                            <StackPanel Grid.Column="1">
+                                <Border Style="{StaticResource CardBorder}">
+                                    <StackPanel>
+                                        <TextBlock Text="BAYAT | AKTİF BAĞLANTI" FontWeight="Bold" FontSize="14" Foreground="#14213D" />
+                                        <TextBlock x:Name="ActiveAdapterText" Text="Henüz taranmadı" TextWrapping="Wrap" Foreground="#475569" Margin="0,10,0,0" />
+                                        <TextBlock Text="Bağdaştırıcı ve varsayılan ağ geçidi sistem taramasından alınır." Foreground="#94A3B8" FontSize="10" TextWrapping="Wrap" Margin="0,8,0,0" />
+                                    </StackPanel>
+                                </Border>
+                                <Border Style="{StaticResource CardBorder}">
+                                    <StackPanel>
+                                        <TextBlock Text="BAYAT | BAŞLANGIÇ TERCİHİ" FontWeight="Bold" FontSize="14" Foreground="#14213D" />
+                                        <CheckBox x:Name="StartupCheckBox" Content="Windows açılışında başlat" Margin="0,12,0,0"
+                                                  Foreground="#334155" Checked="StartupCheckBox_Checked" Unchecked="StartupCheckBox_Unchecked" />
+                                        <TextBlock Text="Yalnızca bu Windows kullanıcı hesabı için geçerlidir. İstediğiniz zaman kapatabilirsiniz."
+                                                   Foreground="#94A3B8" FontSize="10" TextWrapping="Wrap" Margin="0,8,0,0" />
+                                    </StackPanel>
+                                </Border>
+                                <Border Style="{StaticResource CardBorder}">
+                                    <StackPanel>
+                                        <TextBlock Text="BAYAT | VERİ GİZLİLİĞİ" FontWeight="Bold" FontSize="14" Foreground="#14213D" />
+                                        <TextBlock Text="Canlı ölçümler yalnızca bellekte tutulur. İzleme otomatik olarak internet üzerinden veri göndermez. CSV dışa aktarımı yalnızca siz başlatırsanız gerçekleşir."
+                                                   Foreground="#64748B" FontSize="11" TextWrapping="Wrap" Margin="0,8,0,0" />
+                                        <Button x:Name="LiveExportButton" Content="CANLI ÖLÇÜMLERİ CSV KAYDET" Click="LiveExportButton_Click" Margin="0,12,0,0" />
+                                    </StackPanel>
+                                </Border>
+                            </StackPanel>
+                        </Grid>
+                        <TextBlock Text="Not: Bu grafik varsayılan ağ geçidine yapılan ICMP ping ölçümüdür; oyun sunucusunun UDP gecikmesini veya ISS kaynaklı paket kaybını temsil etmez. Bazı modemler ICMP yanıtlarını kısıtlayabilir."
+                                   Foreground="#64748B" FontSize="10" TextWrapping="Wrap" Margin="2,0,2,10" />
+                    </StackPanel>
+                </ScrollViewer>
+            </TabItem>
+
+            <TabItem Header="BAYAT | Bağlantı ve Oyun">
+                <ScrollViewer VerticalScrollBarVisibility="Auto">
+                    <StackPanel Margin="8,14">
+                        <TextBlock Text="BAYAT | AĞ TANILAMA" FontWeight="Bold" FontSize="15" Foreground="#14213D" Margin="0,0,0,10" />
+                        <WrapPanel>
+                            <Button x:Name="PingButton" Content="Ping / Jitter / Paket Kaybı Testi" Click="PingButton_Click" Background="#DBEAFE" />
+                            <Button x:Name="GameTestButton" Content="Oyun Sunucusunu Test Et" Click="GameTestButton_Click" Background="#DBEAFE" />
+                            <Button x:Name="DiscoverGameConnectionsButton" Content="Çalışan Oyunları ve Bağlantıları Tara" Click="DiscoverGameConnectionsButton_Click" />
+                        </WrapPanel>
+                        <Border Style="{StaticResource CardBorder}" Margin="0,4,0,14">
+                            <StackPanel>
+                                <TextBlock Text="BAYAT | OYUN HEDEFİ" FontWeight="Bold" Foreground="#14213D" Margin="0,0,0,10" />
+                                <WrapPanel VerticalAlignment="Center">
+                                    <TextBlock Text="Oyun profili:" VerticalAlignment="Center" Margin="0,0,6,8" Foreground="#334155" />
+                                    <ComboBox x:Name="GameProfileCombo" Width="160" SelectedIndex="0" Margin="0,0,12,8">
+                                        <ComboBoxItem Content="Özel sunucu" />
+                                        <ComboBoxItem Content="Valorant" />
+                                        <ComboBoxItem Content="Counter-Strike 2" />
+                                        <ComboBoxItem Content="PUBG" />
+                                        <ComboBoxItem Content="Fortnite" />
+                                    </ComboBox>
+                                    <TextBlock Text="Sunucu IP / alan adı:" VerticalAlignment="Center" Margin="0,0,6,8" Foreground="#334155" />
+                                    <TextBox x:Name="GameHostText" Width="220" Margin="0,0,12,8" ToolTip="Oyunun gösterdiği gerçek sunucu IP adresi veya alan adı" />
+                                    <TextBlock Text="TCP port (isteğe bağlı):" VerticalAlignment="Center" Margin="0,0,6,8" Foreground="#334155" />
+                                    <TextBox x:Name="GamePortText" Width="80" Margin="0,0,8,8" ToolTip="UDP oyun trafiğini ölçmez." />
+                                </WrapPanel>
+                                <TextBlock Text="Sunucu adresini oyunun kendi ağ istatistiklerinden alın. Sabit IP/port varsayılmaz. ICMP ve TCP testleri oyun içi UDP ping'i değildir."
+                                           Foreground="#64748B" FontSize="11" TextWrapping="Wrap" />
+                            </StackPanel>
+                        </Border>
+                        <TextBlock Text="Canlı izleme ayrı sekmededir ve varsayılan ağ geçidini ölçer. Oyun hedefi testi, buraya girilen hedefi ayrıca ölçer." Foreground="#64748B" FontSize="11" />
+                    </StackPanel>
+                </ScrollViewer>
+            </TabItem>
+
+            <TabItem Header="BAYAT | Optimizasyon">
+                <ScrollViewer VerticalScrollBarVisibility="Auto">
+                    <StackPanel Margin="8,14">
+                        <TextBlock Text="BAYAT | AĞ KARTI VE AKILLI ÖNERİLER" FontWeight="Bold" FontSize="15" Foreground="#14213D" Margin="0,0,0,10" />
+                        <WrapPanel>
+                            <Button x:Name="RecommendationsButton" Content="Akıllı Profil ve Öneriler" Click="RecommendationsButton_Click" Background="#DCFCE7" />
+                            <Button x:Name="NicPropertiesButton" Content="Akıllı Ağ Kartı Analizi" Click="NicPropertiesButton_Click" />
+                            <Button x:Name="ApplyNicSettingsButton" Content="Uygun RSS Testini Uygula" Click="ApplyNicSettingsButton_Click" Background="#DCFCE7" IsEnabled="False" ToolTip="Bu sürümde güvenlik nedeniyle devre dışıdır." />
+                            <Button x:Name="RestoreNicSettingsButton" Content="Önceki Ağ Kartı Ayarını Geri Yükle" Click="RestoreNicSettingsButton_Click" Background="#FCE8E6" IsEnabled="False" ToolTip="Bu sürümde güvenlik nedeniyle devre dışıdır." />
+                        </WrapPanel>
+                        <Border Style="{StaticResource CardBorder}" Margin="0,0,0,14">
+                            <StackPanel>
+                                <TextBlock Text="BAYAT | DNS YÖNETİMİ" FontWeight="Bold" Foreground="#14213D" Margin="0,0,0,10" />
+                                <WrapPanel>
+                                    <Button x:Name="FlushButton" Content="DNS Önbelleğini Temizle" Click="FlushButton_Click" IsEnabled="False" ToolTip="Bu sürümde güvenlik nedeniyle devre dışıdır." />
+                                    <Button x:Name="DnsButton" Content="Cloudflare DNS Uygula" Click="DnsButton_Click" Background="#DBEAFE" IsEnabled="False" ToolTip="Bu sürümde güvenlik nedeniyle devre dışıdır." />
+                                    <Button x:Name="BenchmarkDnsButton" Content="DNS Hızını Karşılaştır" Click="BenchmarkDnsButton_Click" />
+                                    <Button x:Name="ApplyBestDnsButton" Content="Ölçümde En Hızlı DNS'yi Uygula" Click="ApplyBestDnsButton_Click" Background="#DCFCE7" IsEnabled="False" ToolTip="Bu sürümde güvenlik nedeniyle devre dışıdır." />
+                                    <Button x:Name="RestoreButton" Content="Önceki DNS'yi Geri Yükle" Click="RestoreButton_Click" Background="#FCE8E6" IsEnabled="False" ToolTip="Bu sürümde güvenlik nedeniyle devre dışıdır." />
+                                </WrapPanel>
+                                <TextBlock Text="DNS yanıt süresi oyun sunucusuna giden mevcut bağlantının ping değeri değildir. DNS değişikliği yalnızca yeni alan adı çözümlemelerini etkiler."
+                                           Foreground="#64748B" FontSize="11" TextWrapping="Wrap" />
+                            </StackPanel>
+                        </Border>
+                        <Border Style="{StaticResource CardBorder}" Margin="0,0,0,14">
+                            <StackPanel>
+                                <TextBlock Text="BAYAT | GÜVENLİK İLKELERİ" FontWeight="Bold" Foreground="#14213D" />
+                                <TextBlock Text="• Donanım ve sürücü bilgileri salt okunur olarak analiz edilir.&#xA;• DNS, RSS ve ağ ayarlarını değiştirme ve geri yükleme işlemleri bu sürümde güvenlik nedeniyle devre dışıdır.&#xA;• Yönetici yetkisiyle sistem değişikliği veya otomatik ayar uygulanmaz.&#xA;• Evrensel Registry/TCP ayarları otomatik değiştirilmez."
+                                           Foreground="#475569" FontSize="12" TextWrapping="Wrap" Margin="0,8,0,0" />
+                            </StackPanel>
+                        </Border>
+                    </StackPanel>
+                </ScrollViewer>
+            </TabItem>
+
+            <TabItem Header="BAYAT | A/B Test ve Geçmiş">
+                <ScrollViewer VerticalScrollBarVisibility="Auto">
+                    <StackPanel Margin="8,14">
+                        <TextBlock Text="BAYAT | ÖNCE / SONRA PERFORMANS KARŞILAŞTIRMASI" FontWeight="Bold" FontSize="15" Foreground="#14213D" Margin="0,0,0,10" />
+                        <WrapPanel Margin="0,0,0,10">
+                            <TextBlock Text="Sunucu IP / alan adı:" VerticalAlignment="Center" Margin="0,0,8,8" Foreground="#334155" />
+                            <TextBox x:Name="AbGameHostText" Width="260" Margin="0,0,12,8"
+                                     Text="{Binding Text, ElementName=GameHostText, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}"
+                                     ToolTip="Aynı oyun oturumunun gerçek sunucu IP adresi veya alan adı. Bu alan diğer sekmedeki sunucu alanıyla eş zamanlıdır." />
+                        </WrapPanel>
+                        <WrapPanel>
+                            <Button x:Name="CaptureBaselineButton" Content="Aşama A: Ön Ölçüm" Click="CaptureBaselineButton_Click" Background="#DBEAFE" />
+                            <Button x:Name="CaptureAfterButton" Content="Aşama B: Son Ölçüm" Click="CaptureAfterButton_Click" Background="#DCFCE7" IsEnabled="False" />
+                            <Button x:Name="CompareAbButton" Content="A/B Sonuçlarını Karşılaştır" Click="CompareAbButton_Click" IsEnabled="False" />
+                            <Button x:Name="ResetAbButton" Content="A/B Oturumunu Sıfırla" Click="ResetAbButton_Click" Background="#FCE8E6" IsEnabled="False" />
+                            <Button x:Name="ViewHistoryButton" Content="Yerel Performans Geçmişi" Click="ViewHistoryButton_Click" />
+                            <Button x:Name="ClearHistoryButton" Content="Geçmişi Sil" Click="ClearHistoryButton_Click" Background="#FCE8E6" IsEnabled="False" />
+                        </WrapPanel>
+                        <Border Style="{StaticResource CardBorder}" Margin="0,4,0,14">
+                            <StackPanel>
+                                <TextBlock Text="BAYAT | ÖLÇÜM TALİMATI" FontWeight="Bold" Foreground="#14213D" />
+                                <TextBlock Text="1. Aynı oyun sunucusunu belirleyin ve Aşama A ön ölçümünü alın.\n2. Tek bir ayarı değiştirin.\n3. Ağ kartı/Windows yeniden başlatma gerekiyorsa tamamlayın.\n4. Aşama B ölçümünü aynı hedef IP'ye alın ve sonuçları karşılaştırın.\n5. Güvenilir sonuç için benzer koşullarda en az üç A/B çifti tekrarlayın."
+                                           Foreground="#475569" FontSize="12" TextWrapping="Wrap" Margin="0,8,0,0" />
+                                <TextBlock Text="ICMP kaybı UDP oyun kaybıyla aynı değildir. Tek A/B çifti nedenselliği kanıtlamaz; arka plan indirmeleri, rota ve sunucu yükü ölçümü etkileyebilir."
+                                           Foreground="#B45309" FontSize="11" TextWrapping="Wrap" Margin="0,12,0,0" />
+                            </StackPanel>
+                        </Border>
+                    </StackPanel>
+                </ScrollViewer>
+            </TabItem>
+
+            <TabItem Header="BAYAT | Raporlar">
+                <Grid Margin="8,12">
+                    <Grid.RowDefinitions><RowDefinition Height="Auto" /><RowDefinition Height="*" /></Grid.RowDefinitions>
+                    <DockPanel Margin="0,0,0,10">
+                        <TextBlock Text="BAYAT | TANI VE OPTİMİZASYON RAPORLARI" FontWeight="Bold" FontSize="14" Foreground="#14213D" VerticalAlignment="Center" />
+                        <Button x:Name="ExportButton" Content="RAPORU KAYDET" Click="ExportButton_Click" Background="#DBEAFE" DockPanel.Dock="Right" />
+                    </DockPanel>
+                    <Border Grid.Row="1" Background="#101827" CornerRadius="12" Padding="14">
+                        <TextBox x:Name="OutputText" IsReadOnly="True" AcceptsReturn="True" TextWrapping="Wrap"
+                                 FontFamily="Consolas" FontSize="12" Foreground="#D7E3F4" Background="Transparent"
+                                 BorderThickness="0" VerticalScrollBarVisibility="Auto" VerticalContentAlignment="Top" />
+                    </Border>
+                </Grid>
+            </TabItem>
+        </TabControl>
+
+        <Border Grid.Row="2" Background="White" CornerRadius="8" Padding="10" Margin="0,12,0,0">
+            <DockPanel>
+                <TextBlock Text="BAYAT | DURUM" FontWeight="Bold" Foreground="#64748B" FontSize="10" DockPanel.Dock="Left" Margin="0,0,10,0" />
+                <TextBlock x:Name="StatusText" Text="Hazır. İlk sistem taraması başlatılıyor..." Foreground="#334155" FontSize="11" TextTrimming="CharacterEllipsis" />
+            </DockPanel>
+        </Border>
+    </Grid>
+</Window>

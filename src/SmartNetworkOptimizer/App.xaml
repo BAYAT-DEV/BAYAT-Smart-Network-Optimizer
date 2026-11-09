@@ -1,0 +1,17 @@
+<!-- Copyright (C) 2026 BAYAT -->
+<!-- SPDX-License-Identifier: GPL-3.0-only -->
+<!-- See LICENSE.txt for the full license text. -->
+<Application x:Class="SmartNetworkOptimizer.App"
+             xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             StartupUri="MainWindow.xaml">
+    <Application.Resources>
+        <SolidColorBrush x:Key="AccentBrush" Color="#2563EB" />
+        <Style TargetType="Button">
+            <Setter Property="Padding" Value="14,9" />
+            <Setter Property="Margin" Value="0,0,8,8" />
+            <Setter Property="FontSize" Value="13" />
+            <Setter Property="Cursor" Value="Hand" />
+        </Style>
+    </Application.Resources>
+</Application>

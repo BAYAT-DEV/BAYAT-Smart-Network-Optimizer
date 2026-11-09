@@ -1,0 +1,82 @@
+name: Windows build
+
+on:
+  workflow_dispatch:
+  push:
+    tags:
+      - 'v*'
+
+permissions:
+  contents: read
+
+jobs:
+  publish:
+    name: Publish ${{ matrix.rid }}
+    runs-on: windows-latest
+    strategy:
+      fail-fast: false
+      matrix:
+        rid: [win-x64, win-arm64]
+    steps:
+      - name: Checkout
+        uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262
+
+      - name: Install .NET 10 SDK
+        uses: actions/setup-dotnet@67a3573c9a986a3f9c594539f4ab511d57bb3ce9
+        with:
+          dotnet-version: 10.0.x
+
+      - name: Restore
+        run: dotnet restore src/SmartNetworkOptimizer/SmartNetworkOptimizer.csproj --runtime ${{ matrix.rid }}
+
+      - name: Publish single-file application
+        run: >-
+          dotnet publish src/SmartNetworkOptimizer/SmartNetworkOptimizer.csproj
+          -c Release -r ${{ matrix.rid }} --self-contained true --no-restore
+          -o artifacts/${{ matrix.rid }}
+          /p:PublishSingleFile=true
+          /p:IncludeNativeLibrariesForSelfExtract=true
+          /p:EnableCompressionInSingleFile=true
+          /p:PublishTrimmed=false
+          /p:DebugType=None /p:DebugSymbols=false
+
+      - name: Package and checksum
+        shell: pwsh
+        run: |
+          $name = "SmartNetworkOptimizer-${{ matrix.rid }}"
+          Compress-Archive -Path "artifacts/${{ matrix.rid }}/*" -DestinationPath "artifacts/$name.zip" -CompressionLevel Optimal
+          $hash = (Get-FileHash "artifacts/$name.zip" -Algorithm SHA256).Hash.ToLowerInvariant()
+          Set-Content -Path "artifacts/$name.zip.sha256" -Value "$hash  $name.zip" -Encoding ascii
+
+      - name: Upload build artifact
+        uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02
+        with:
+          name: SmartNetworkOptimizer-${{ matrix.rid }}
+          path: |
+            artifacts/SmartNetworkOptimizer-${{ matrix.rid }}.zip
+            artifacts/SmartNetworkOptimizer-${{ matrix.rid }}.zip.sha256
+          if-no-files-found: error
+
+  publish-release:
+    name: Publish GitHub release assets
+    if: startsWith(github.ref, 'refs/tags/v')
+    needs: publish
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write
+    steps:
+      - name: Download build artifacts
+        uses: actions/download-artifact@d3f86a106a0bac45b974a628896c90dbdf5c8093
+        with:
+          path: release-assets
+      - name: Flatten release assets
+        shell: bash
+        run: |
+          mkdir -p release-files
+          find release-assets -type f \( -name '*.zip' -o -name '*.sha256' \) -print0 | xargs -0 -I{} cp "{}" release-files/
+          test -n "$(find release-files -type f -name '*.zip' -print -quit)"
+      - name: Create GitHub release
+        uses: softprops/action-gh-release@3bb12739c298aeb8a4eeaf626c5b8d85266b0e65
+        with:
+          files: release-files/*
+          generate_release_notes: true

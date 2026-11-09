@@ -1,0 +1,46 @@
+# .NET build outputs
+**/bin/
+**/obj/
+.vs/
+TestResults/
+
+# Generated packages and release artifacts
+/artifacts/
+*.zip
+*.zip.sha256
+
+# User-specific IDE files
+*.user
+*.suo
+
+# Local backups and system state
+/safety-backups/
+**/backups/
+**/*.bak
+*.reg
+
+# Private signing material
+*.pfx
+*.p12
+*.snk
+*.key
+*.pem
+
+# Logs and crash dumps
+*.log
+*.dmp
+
+# Local environment secrets
+.env
+.env.*
+!.env.example
+
+# Operating system files
+Thumbs.db
+.DS_Store
+# BAYAT source backup protection
+/src/**/*.bak*
+/src/**/*backup*
+/src/**/*-backup*
+BAYAT-KOD-DUZELT.ps1
+BAYAT-ONARIMI-CALISTIR.bat
