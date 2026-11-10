@@ -93,6 +93,16 @@ internal static class DnsResolverCatalog
         new("Cisco", "cisco-unknown-role", "UDP DNS yanıtı veren Cisco adresleri", "146.112.41.3", true, false, "UDP/53 yanıtı ölçüldü; hizmet rolü ve politika doğrulanmadan uygulanmaz.")
     };
 
+    public static IReadOnlyList<string> CatalogExpansionServers { get; } =
+        Array.AsReadOnly(Entries
+            .Where(entry =>
+                string.Equals(entry.ProfileId, "controld-malware", StringComparison.Ordinal))
+            .Select(entry => entry.Server)
+            .ToArray());
+
+    public static int PreviousCatalogCount =>
+        ExpectedCount - CatalogExpansionServers.Count;
+
     public static IReadOnlyList<DnsResolverDefinition> All { get; } =
         Array.AsReadOnly(Entries);
 }
