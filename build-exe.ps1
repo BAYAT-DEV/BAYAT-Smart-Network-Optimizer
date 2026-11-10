@@ -9,7 +9,7 @@ $ProgressPreference = 'SilentlyContinue'
 
 $projectRoot = $PSScriptRoot
 $project = Join-Path $projectRoot 'src\SmartNetworkOptimizer\SmartNetworkOptimizer.csproj'
-$version = '1.1.0'
+$version = '1.1.2'
 
 function Show-SdkMissingWarning {
     $message = "Sisteminizde .NET 10 SDK bulunmadığı veya kullanılamadığı için yayın işlemi başlatılamadı.`n`nLütfen .NET 10 SDK'yı sisteminize kurun ve işlemi yeniden deneyin."

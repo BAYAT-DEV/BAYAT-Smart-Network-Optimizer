@@ -1,5 +1,15 @@
 # Değişiklik Günlüğü
 
+## v1.1.2 — Kurulum ve sürüm tutarlılığı
+
+- Inno Setup kurulum sihirbazındaki Türkçe metin kodlaması düzeltildi.
+- Proje, kurulum, yerel EXE oluşturma betiği ve indirme belgelerindeki sürümler 1.1.2 ile eşitlendi.
+
+## v1.1.1 — Windows yayın paketleri
+
+- Windows x64 kurulum ve taşınabilir ZIP paketleri ile ARM64 taşınabilir ZIP paketi SHA256 dosyalarıyla yayımlandı.
+- GitHub Actions otomatik test, derleme ve Release yükleme adımları başarıyla tamamlandı.
+
 ## v1.1.0 — BAYAT arayüzü ve platform uyumluluğu
 
 - Pencere başlığı, ana marka başlığı, sekmeler, kart/metric başlıkları ve durum başlığı `BAYAT` önekiyle güncellendi.

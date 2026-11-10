@@ -1,4 +1,4 @@
-# BAYAT Smart Network Optimizer — v1.1.1
+# BAYAT Smart Network Optimizer — v1.1.2
 ## v1.1.0 — BAYAT arayüzü ve Windows uyumluluk notu
 
 - Arayüzdeki ana başlık, sekme başlıkları, metrik/kart başlıkları, iletişim kutusu başlıkları ve durum başlığı `BAYAT` önekiyle gösterilir.
@@ -18,7 +18,7 @@ Microsoft'un güncel .NET Windows kurulum tablosu, modern .NET'in Windows 10 des
 - Canlı örnekler uygulama belleğinde tutulur; uygulama kapandığında silinir. Kullanıcı isterse zaman damgası, başarılı/başarısız durumu, RTT ve yanıt durumunu CSV olarak dışa aktarabilir. Otomatik telemetri/ağ üzerinden gönderim eklenmemiştir.
 - İsteğe bağlı **Windows açılışında başlat** seçeneği yalnızca geçerli kullanıcı profili için `HKCU\Software\Microsoft\Windows\CurrentVersion\Run` girdisini yönetir. Yönetici izni istemez. Yalnızca yayınlanmış `SmartNetworkOptimizer.exe` üzerinden etkinleştirilebilir; kaldırma betiği bu başlangıç girdisini temizler.
 - `publish.ps1` ile self-contained, tek dosyalı win-x64 veya win-arm64 yayın hazırlanabilir. GitHub Actions workflow'u aynı iki hedef için Windows runner üzerinde build artifact üretir.
-- `installer/SmartNetworkOptimizer.iss`, win-x64 paketi için kullanıcı seviyesinde kurulum tanımıdır. GitHub Actions, win-x64 yayınında Inno Setup'ı kurup `SmartNetworkOptimizer-Setup-1.1.1-win-x64.exe` dosyasını otomatik üretir; kurulum EXE'si ve SHA256 dosyası ZIP paketleriyle birlikte artifact olarak saklanır ve sürüm etiketiyle açılan GitHub Release'e eklenir. ARM64 için taşınabilir ZIP paketi sağlanır; ARM64 kurulum sihirbazı bu sürümde sunulmaz.
+- `installer/SmartNetworkOptimizer.iss`, win-x64 paketi için kullanıcı seviyesinde kurulum tanımıdır. GitHub Actions, win-x64 yayınında Inno Setup'ı kurup `SmartNetworkOptimizer-Setup-1.1.2-win-x64.exe` dosyasını otomatik üretir; kurulum EXE'si ve SHA256 dosyası ZIP paketleriyle birlikte artifact olarak saklanır ve sürüm etiketiyle açılan GitHub Release'e eklenir. ARM64 için taşınabilir ZIP paketi sağlanır; ARM64 kurulum sihirbazı bu sürümde sunulmaz.
 
 ### Platform ve destek notu
 
@@ -27,8 +27,8 @@ Microsoft'un güncel .NET Windows kurulum tablosu, modern .NET'in Windows 10 des
 
 ### İndirme ve kurulum
 
-- Yayımlanmış güncel resmî sürüm dosyaları GitHub deposunun **Releases** sayfasında listelenir. Windows 11 x64 için `SmartNetworkOptimizer-Setup-1.1.1-win-x64.exe` kurulum dosyasını; ARM64 cihazlar için `SmartNetworkOptimizer-win-arm64.zip` paketini kullanın.
-- Kurulum dosyasının yanında yayımlanan `.sha256` dosyasını indirin. PowerShell'de indirdiğiniz dosyanın SHA256 değerini `Get-FileHash .\SmartNetworkOptimizer-Setup-1.1.1-win-x64.exe -Algorithm SHA256` komutuyla hesaplayıp SHA256 dosyasındaki değerle karşılaştırın.
+- Yayımlanmış güncel resmî sürüm dosyaları GitHub deposunun **Releases** sayfasında listelenir. Windows 11 x64 için `SmartNetworkOptimizer-Setup-1.1.2-win-x64.exe` kurulum dosyasını; ARM64 cihazlar için `SmartNetworkOptimizer-win-arm64.zip` paketini kullanın.
+- Kurulum dosyasının yanında yayımlanan `.sha256` dosyasını indirin. PowerShell'de indirdiğiniz dosyanın SHA256 değerini `Get-FileHash .\SmartNetworkOptimizer-Setup-1.1.2-win-x64.exe -Algorithm SHA256` komutuyla hesaplayıp SHA256 dosyasındaki değerle karşılaştırın.
 - GitHub Actions artifact'ları test/önizleme içindir; resmî sürüm yerine geçmez. Sürüm etiketi ve Release yayımlanmadan önce kurulum akışı CI üzerinde doğrulanmalıdır.
 - Bu sürümde Authenticode kod imzası yoktur. GitHub provenance attestasyonu derlemenin kaynağını doğrulamaya yardımcı olur; Windows yayıncı imzası değildir ve SmartScreen uyarısız çalışmayı garanti etmez. Güvenilir sertifika ile imzalanmamış dosyaları bu gerçek saklanarak imzalıymış gibi tanıtmayın.
 

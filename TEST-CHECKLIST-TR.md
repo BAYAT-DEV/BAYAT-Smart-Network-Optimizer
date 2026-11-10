@@ -1,4 +1,4 @@
-# Windows test kontrol listesi — v1.1.0
+# Windows test kontrol listesi — v1.1.2
 
 Bu sürüm için Windows cihazlarında gerçek doğrulama gereklidir. Statik XAML kontrolü, gerçek Windows derlemesinin veya donanım testinin yerine geçmez.
 
@@ -132,6 +132,15 @@ Bu kontrol listesi gerçek Windows donanımında çalıştırılmalıdır. Testl
 
 Not: Bu geliştirme ortamında .NET SDK/Windows PowerShell bulunmadığından .NET derlemesi ve bu Windows test maddeleri çalıştırılmadı. Derleme/gerçek donanım testleri, Windows 10/11 sisteminde yapılmalıdır.
 
+
+## v1.1.2 kurulum ve sürüm kabul kontrolleri
+
+- [ ] Proje, Assembly, File ve Informational sürüm alanları 1.1.2 ile eşleşir.
+- [ ] Inno Setup masaüstü kısayolu açıklaması Türkçe karakterleri doğru gösterir.
+- [ ] Kurulum tamamlanınca uygulamayı başlat açıklaması doğru görünür.
+- [ ] x64 kurulum dosyası SmartNetworkOptimizer-Setup-1.1.2-win-x64.exe adıyla üretilir.
+- [ ] win-x64 ve win-arm64 ZIP paketleri oluşturulur ve SHA256 değerleri doğrulanır.
+- [ ] Yerel EXE oluşturma betiği 1.1.2 sürüm adını kullanır.
 
 ## v1.1.0 ek kabul kontrolleri
 

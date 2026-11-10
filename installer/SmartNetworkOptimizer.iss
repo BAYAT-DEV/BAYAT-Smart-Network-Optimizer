@@ -1,5 +1,5 @@
 #define MyAppName "BAYAT Smart Network Optimizer"
-#define MyAppVersion "1.1.1"
+#define MyAppVersion "1.1.2"
 #define MyAppPublisher "BAYAT"
 #define MyAppExeName "SmartNetworkOptimizer.exe"
 

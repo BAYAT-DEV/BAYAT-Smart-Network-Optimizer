@@ -1,4 +1,4 @@
-BAYAT Smart Network Optimizer v1.1.0 - Derleme paketi
+BAYAT Smart Network Optimizer v1.1.2 - Derleme paketi
 
 ONEMLI: ZIP dosyasini sag tiklayip Tumunu Ayikla ile ayiklayin.
 Ayiklama tamamlaninca SmartNetworkOptimizer klasorunu acin.
