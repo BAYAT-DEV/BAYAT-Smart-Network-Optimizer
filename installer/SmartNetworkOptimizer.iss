@@ -1,4 +1,4 @@
-﻿#define MyAppName "BAYAT Smart Network Optimizer"
+#define MyAppName "BAYAT Smart Network Optimizer"
 #define MyAppVersion "1.1.0"
 #define MyAppPublisher "BAYAT"
 #define MyAppExeName "SmartNetworkOptimizer.exe"
@@ -17,6 +17,7 @@ OutputBaseFilename=SmartNetworkOptimizer-Setup-{#MyAppVersion}-win-x64
 Compression=lzma2
 SolidCompression=yes
 WizardStyle=modern
+SetupIconFile=..\src\SmartNetworkOptimizer\Assets\BAYAT.ico
 ArchitecturesAllowed=x64
 ArchitecturesInstallIn64BitMode=x64
 UninstallDisplayIcon={app}\{#MyAppExeName}

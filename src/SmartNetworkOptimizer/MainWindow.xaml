@@ -4,7 +4,7 @@
 <Window x:Class="SmartNetworkOptimizer.MainWindow"
         xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
         xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
-        Title="BAYAT | Smart Network Optimizer v1.1.0" Height="920" Width="1440"
+        Title="BAYAT | Smart Network Optimizer v1.1.0" Icon="pack://application:,,,/Assets/BAYAT.ico" Height="920" Width="1440"
         MinHeight="760" MinWidth="1120" WindowStartupLocation="CenterScreen"
         Background="#F3F6FB">
     <Window.Resources>

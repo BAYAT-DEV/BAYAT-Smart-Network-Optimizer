@@ -18,8 +18,12 @@
     <FileVersion>1.1.0.0</FileVersion>
     <InformationalVersion>1.1.0</InformationalVersion>
     <ApplicationManifest>app.manifest</ApplicationManifest>
+    <ApplicationIcon>Assets\BAYAT.ico</ApplicationIcon>
   </PropertyGroup>
   <ItemGroup>
     <PackageReference Include="System.Management" Version="10.0.0" />
+  </ItemGroup>
+  <ItemGroup>
+    <Resource Include="Assets\BAYAT.ico" />
   </ItemGroup>
 </Project>
