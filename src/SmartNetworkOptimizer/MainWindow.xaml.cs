@@ -1887,82 +1887,390 @@ public partial class MainWindow : Window
     }
     private async Task ApplyDnsProfileAsync(ResolverProfile profile)
     {
-        
         if (!OperatingSystem.IsWindows()) return;
-        if (_activeAdapter is null)
+
+        var selectedAdapter = _activeAdapter;
+        if (!IsUsableDnsAdapter(selectedAdapter))
         {
-            ShowBAYATMessageBox("Önce sistem taraması yapın.", "DNS ayarı");
+            ShowBAYATMessageBox("DNS değiştirmek için varsayılan ağ geçidi bulunan etkin fiziksel Ethernet/Wi-Fi bağlantısı gerekli. Önce sistem taraması yapın.", "DNS güvenlik kontrolü");
             return;
         }
+
         if (File.Exists(BackupPath))
         {
-            ShowBAYATMessageBox("Zaten bir DNS yedeği var. Yeni değişiklikten önce mevcut ayarı geri yükleyin; böylece ilk ayar yedeği korunur.", "DNS yedeği mevcut");
+            ShowBAYATMessageBox("Önceki DNS yedeği zaten mevcut. İlk yedeği korumak için yeni bir profil uygulamadan önce önceki DNS ayarlarını geri yükleyin.", "DNS yedeği mevcut");
+            UpdateRestoreButton();
             return;
         }
 
-        bool ipv6Supported = _activeAdapter.Supports(NetworkInterfaceComponent.IPv6);
-        bool applyIpv6 = ipv6Supported && profile.Ipv6Servers.Length == 2;
-        bool? ipv4StaticDnsValue = HasStaticDnsConfig("Tcpip", _activeAdapter.Id);
-        bool? ipv6StaticDnsValue = ipv6Supported ? HasStaticDnsConfig("Tcpip6", _activeAdapter.Id) : false;
-        if (ipv4StaticDnsValue is null || (applyIpv6 && ipv6StaticDnsValue is null))
+        var adapterId = selectedAdapter!.Id;
+        var ipv6Supported = selectedAdapter.Supports(NetworkInterfaceComponent.IPv6);
+        var applyIpv6 = ipv6Supported && profile.Ipv6Servers.Length == 2;
+
+        bool? ipv4StaticDns = HasStaticDnsConfig("Tcpip", adapterId);
+        bool? ipv6StaticDns = applyIpv6 ? HasStaticDnsConfig("Tcpip6", adapterId) : false;
+        if (ipv4StaticDns is null || (applyIpv6 && ipv6StaticDns is null))
         {
-            ShowBAYATMessageBox("Windows kayıt defterinden DNS yapılandırma türü güvenilir biçimde okunamadı. Güvenlik için DNS değişikliği uygulanmayacak.", "Güvenlik nedeniyle işlem durduruldu", MessageBoxButton.OK, MessageBoxImage.Information);
+            ShowBAYATMessageBox("Windows kayıt defterinden DNS yapılandırma türü güvenilir biçimde okunamadı. Güvenlik için işlem durduruldu.", "DNS güvenlik kontrolü", MessageBoxButton.OK, MessageBoxImage.Warning);
             return;
         }
 
-        var ipProperties = _activeAdapter.GetIPProperties();
-        var ipv4Servers = ipProperties.DnsAddresses.Where(a => a.AddressFamily == AddressFamily.InterNetwork).Select(a => a.ToString()).ToList();
-        var ipv6Servers = ipProperties.DnsAddresses.Where(a => a.AddressFamily == AddressFamily.InterNetworkV6).Select(a => a.ToString()).ToList();
-        int index;
-        try { index = ipProperties.GetIPv4Properties().Index; }
-        catch (Exception ex) { ShowBAYATMessageBox("Ağ arabirimi numarası okunamadı: " + ex.Message); return; }
+        List<string> oldIpv4;
+        List<string> oldIpv6;
+        int interfaceIndex;
+        try
+        {
+            var properties = selectedAdapter.GetIPProperties();
+            oldIpv4 = properties.DnsAddresses
+                .Where(address => address.AddressFamily == AddressFamily.InterNetwork)
+                .Select(address => address.ToString()).ToList();
+            oldIpv6 = properties.DnsAddresses
+                .Where(address => address.AddressFamily == AddressFamily.InterNetworkV6)
+                .Select(address => address.ToString()).ToList();
+            interfaceIndex = properties.GetIPv4Properties()?.Index
+                ?? throw new InvalidOperationException("IPv4 bağdaştırıcı özellikleri okunamadı.");
+        }
+        catch (Exception ex)
+        {
+            ShowBAYATMessageBox("Mevcut DNS ayarları güvenilir biçimde okunamadı: " + ex.Message, "DNS güvenlik kontrolü", MessageBoxButton.OK, MessageBoxImage.Warning);
+            return;
+        }
 
-        var confirm = ShowBAYATMessageBox(
-            $"'{_activeAdapter.Name}' bağlantısında {profile.Provider} DNS kullanılacak.\n\nIPv4: {string.Join(", ", profile.Ipv4Servers)}\nIPv6: {(applyIpv6 ? string.Join(", ", profile.Ipv6Servers) : ipv6Supported ? "Mevcut IPv6 DNS ayarı korunacak." : "Bu bağdaştırıcıda IPv6 etkin değil.")}\n\nÖnceki DNS ayarları yedeklenecek. DNS değişikliği oyun pingini düşürmeyebilir. Kurumsal, VPN veya ebeveyn denetimli DNS kullanıyorsanız devam etmeyin.\n\nDevam edilsin mi?",
+        var ipv6Description = applyIpv6
+            ? string.Join(", ", profile.Ipv6Servers)
+            : ipv6Supported ? "Mevcut IPv6 DNS ayarı korunacak." : "Bu bağdaştırıcıda IPv6 etkin değil.";
+
+        var confirmation = ShowBAYATMessageBox(
+            $"'{selectedAdapter.Name}' bağlantısında {profile.Provider} DNS kullanılacak.\n\nIPv4: {string.Join(", ", profile.Ipv4Servers)}\nIPv6: {ipv6Description}\n\nMevcut IPv4/IPv6 ayarları önce yedeklenecek. Uygulama sonrası Windows ayarları yeniden okunup doğrulanacak. Doğrulama başarısız olursa önceki ayarlar otomatik geri alınacak.\n\nDNS değişikliği oyun pingini düşürmeyebilir. Kurumsal, VPN, ebeveyn denetimi veya özel DNS politikası kullanıyorsanız devam etmeyin. Windows yönetici izni isteyecektir.\n\nDevam edilsin mi?",
             "DNS değişikliğini onayla", MessageBoxButton.YesNo, MessageBoxImage.Warning);
-        if (confirm != MessageBoxResult.Yes) return;
+        if (confirmation != MessageBoxResult.Yes) return;
 
-        SetBusy(true, "DNS ayarı değiştiriliyor. Windows yönetici izni isteyecek...");
+        // Confirmation dialogs allow time for the active network or DNS configuration to change.
+        var currentAdapter = FindNetworkInterfaceById(adapterId);
+        if (!IsUsableDnsAdapter(currentAdapter))
+        {
+            ShowBAYATMessageBox("Onaydan sonra etkin ağ arabirimi değişti veya bağlantı kesildi. DNS ayarı uygulanmadı.", "DNS güvenlik kontrolü", MessageBoxButton.OK, MessageBoxImage.Warning);
+            return;
+        }
+
+        try
+        {
+            var properties = currentAdapter!.GetIPProperties();
+            var currentIpv4 = properties.DnsAddresses
+                .Where(address => address.AddressFamily == AddressFamily.InterNetwork)
+                .Select(address => address.ToString()).ToList();
+            var currentIpv6 = properties.DnsAddresses
+                .Where(address => address.AddressFamily == AddressFamily.InterNetworkV6)
+                .Select(address => address.ToString()).ToList();
+            var currentIndex = properties.GetIPv4Properties()?.Index
+                ?? throw new InvalidOperationException("IPv4 bağdaştırıcı özellikleri yeniden okunamadı.");
+
+            if (currentIndex != interfaceIndex ||
+                !DnsServerListsEqual(currentIpv4, oldIpv4) ||
+                !DnsServerListsEqual(currentIpv6, oldIpv6) ||
+                HasStaticDnsConfig("Tcpip", adapterId) != ipv4StaticDns ||
+                (applyIpv6 && HasStaticDnsConfig("Tcpip6", adapterId) != ipv6StaticDns))
+            {
+                ShowBAYATMessageBox("DNS veya ağ arabirimi bilgileri onay penceresi açıkken değişti. Güvenlik için işlem durduruldu; yeni sistem taraması yapın.", "DNS güvenlik kontrolü", MessageBoxButton.OK, MessageBoxImage.Warning);
+                return;
+            }
+        }
+        catch (Exception ex)
+        {
+            ShowBAYATMessageBox("DNS ayarları onaydan sonra yeniden doğrulanamadı: " + ex.Message, "DNS güvenlik kontrolü", MessageBoxButton.OK, MessageBoxImage.Warning);
+            return;
+        }
+
+        var backup = new DnsBackup(
+            3,
+            interfaceIndex,
+            adapterId,
+            currentAdapter!.Name,
+            oldIpv4,
+            oldIpv6,
+            !ipv4StaticDns.GetValueOrDefault(),
+            applyIpv6 && !ipv6StaticDns.GetValueOrDefault(),
+            ipv6Supported,
+            DateTimeOffset.Now,
+            profile.Ipv4Servers.ToList(),
+            applyIpv6 ? profile.Ipv6Servers.ToList() : new List<string>(),
+            applyIpv6);
+
+        try { ValidateDnsBackup(backup); }
+        catch (Exception ex)
+        {
+            ShowBAYATMessageBox("DNS yedeği doğrulanamadı; hiçbir ayar değiştirilmedi: " + ex.Message, "DNS yedeği hatası", MessageBoxButton.OK, MessageBoxImage.Warning);
+            return;
+        }
+
+        SetBusy(true, "DNS yedeği hazırlanıyor. Devamında Windows yönetici izni isteyecek...");
+        var tempBackup = BackupPath + "." + Guid.NewGuid().ToString("N") + ".tmp";
+        var backupCreated = false;
         try
         {
             Directory.CreateDirectory(_appDataDir);
-            var backup = new DnsBackup(2, index, _activeAdapter.Id, _activeAdapter.Name,
-                ipv4Servers, ipv6Servers, !ipv4StaticDnsValue.GetValueOrDefault(), !ipv6StaticDnsValue.GetValueOrDefault(), ipv6Supported, DateTimeOffset.Now);
-            await File.WriteAllTextAsync(BackupPath, JsonSerializer.Serialize(backup, new JsonSerializerOptions { WriteIndented = true }));
-            await RunElevatedPowerShellAsync(BuildSetDnsScript(_activeAdapter.Id, profile.Ipv4Servers, profile.Ipv6Servers, applyIpv6));
-            AppendLine($"\n[DNS] {profile.Provider} DNS '{_activeAdapter.Name}' bağdaştırıcısına uygulandı. IPv4/IPv6 yedeği ayrı ayrı kaydedildi.");
-            StatusText.Text = $"{profile.Provider} DNS uygulandı. Geri yükleme kullanılabilir.";
+            if ((File.GetAttributes(_appDataDir) & FileAttributes.ReparsePoint) != 0)
+                throw new InvalidOperationException("Uygulama veri klasörü bir yönlendirme noktası; DNS yedeği güvenli biçimde oluşturulamadı.");
+
+            var json = JsonSerializer.Serialize(backup, new JsonSerializerOptions { WriteIndented = true });
+            await File.WriteAllTextAsync(tempBackup, json, new UTF8Encoding(false));
+            File.Move(tempBackup, BackupPath, overwrite: false);
+            backupCreated = true;
+
+            await RunElevatedPowerShellAsync(BuildSetDnsScript(adapterId, profile.Ipv4Servers, profile.Ipv6Servers, applyIpv6));
+            await VerifyDnsProfileAppliedAsync(adapterId, profile.Ipv4Servers, profile.Ipv6Servers, applyIpv6);
+
+            AppendLine($"\n[DNS] {profile.Provider} DNS '{currentAdapter.Name}' bağdaştırıcısına uygulandı ve Windows üzerinden doğrulandı. Önceki ayarların geri yükleme yedeği saklandı.");
+            StatusText.Text = $"{profile.Provider} DNS uygulandı ve doğrulandı. Önceki DNS ayarları geri yüklenebilir.";
         }
         catch (OperationCanceledException)
         {
-            // UAC cancellation occurs before the elevated script starts, so no setting was changed.
-            try { if (File.Exists(BackupPath)) File.Delete(BackupPath); } catch { }
-            StatusText.Text = "Yönetici izni verilmedi; ayar değiştirilmedi.";
+            if (backupCreated)
+            {
+                try { File.Delete(BackupPath); } catch { }
+            }
+            StatusText.Text = "Windows yönetici izni verilmedi; DNS ayarı değiştirilmedi.";
         }
         catch (Exception ex)
         {
             AppendLine("\n[DNS HATASI] " + ex.Message);
-            if (File.Exists(BackupPath))
+            if (backupCreated)
             {
                 try
                 {
-                    var saved = ParseDnsBackup(await File.ReadAllTextAsync(BackupPath));
-                    if (saved is null) throw new InvalidDataException("İşlem yedeği okunamadı.");
-                    StatusText.Text = "Kısmi DNS işlemi algılandı; önceki ayarlar geri alınıyor...";
+                    var saved = ParseDnsBackup(await File.ReadAllTextAsync(BackupPath))
+                        ?? throw new InvalidDataException("İşlem yedeği okunamadı.");
+                    StatusText.Text = "DNS işlemi doğrulanamadı; önceki ayarlar geri alınıyor...";
                     await RunElevatedPowerShellAsync(BuildRestoreDnsScript(saved));
+                    await VerifyDnsBackupRestoredAsync(saved);
                     File.Delete(BackupPath);
-                    AppendLine("[OTOMATİK GERİ ALMA] DNS ayarları önceki haline döndürüldü.");
-                    StatusText.Text = "İşlem başarısız oldu; önceki DNS ayarları geri yüklendi.";
+                    AppendLine("[OTOMATİK GERİ ALMA] Önceki IPv4/IPv6 DNS ayarları geri yüklendi ve doğrulandı.");
+                    StatusText.Text = "DNS işlemi başarısız oldu; önceki DNS ayarları geri yüklenip doğrulandı.";
                 }
                 catch (Exception rollbackError)
                 {
-                    AppendLine("[GERİ ALMA UYARISI] Otomatik geri yükleme tamamlanamadı: " + rollbackError.Message + " Yedek dosyası korundu; geri yükleme düğmesini kullanın.");
-                    StatusText.Text = "DNS işlemi başarısız. Geri yükleme yedeği korundu.";
+                    AppendLine("[GERİ ALMA UYARISI] Otomatik DNS geri yüklemesi tamamlanamadı: " + rollbackError.Message + " Yedek dosyası korundu; geri yükleme düğmesini kullanın.");
+                    StatusText.Text = "DNS işlemi tamamlanamadı. Geri yükleme yedeği korundu.";
                 }
             }
-            else StatusText.Text = "DNS ayarı uygulanamadı; değişiklik öncesi yedek oluşturulamadı.";
+            else
+            {
+                StatusText.Text = "DNS ayarı uygulanamadı; güvenli yedek oluşturulmadığı için değişiklik başlatılmadı.";
+            }
         }
-        finally { SetBusy(false); UpdateRestoreButton(); }
+        finally
+        {
+            try { if (File.Exists(tempBackup)) File.Delete(tempBackup); } catch { }
+            SetBusy(false);
+            UpdateRestoreButton();
+        }
+    }
+
+    private static NetworkInterface? FindNetworkInterfaceById(string interfaceId)
+        => NetworkInterface.GetAllNetworkInterfaces()
+            .FirstOrDefault(adapter => adapter.Id.Equals(interfaceId, StringComparison.OrdinalIgnoreCase));
+
+    private static bool IsPhysicalNetworkAdapter(string interfaceId)
+    {
+        try
+        {
+            using var searcher = new ManagementObjectSearcher(
+                "SELECT GUID, PhysicalAdapter FROM Win32_NetworkAdapter WHERE GUID IS NOT NULL");
+            foreach (ManagementObject item in searcher.Get())
+            {
+                using (item)
+                {
+                    var id = Convert.ToString(item["GUID"], CultureInfo.InvariantCulture);
+                    if (Guid.TryParse(id, out var guid) &&
+                        guid.ToString("D").Equals(interfaceId, StringComparison.OrdinalIgnoreCase))
+                        return Convert.ToBoolean(item["PhysicalAdapter"] ?? false, CultureInfo.InvariantCulture);
+                }
+            }
+        }
+        catch { }
+        return false;
+    }
+
+    private static bool IsUsableDnsAdapter(NetworkInterface? adapter)
+    {
+        if (adapter is null || adapter.OperationalStatus != OperationalStatus.Up) return false;
+        if (adapter.NetworkInterfaceType != NetworkInterfaceType.Ethernet &&
+            adapter.NetworkInterfaceType != NetworkInterfaceType.Wireless80211) return false;
+        if (!Guid.TryParse(adapter.Id, out _) || !IsPhysicalNetworkAdapter(adapter.Id)) return false;
+        try
+        {
+            return GetDefaultGateway(adapter) is not null &&
+                   adapter.GetIPProperties().UnicastAddresses.Any(address =>
+                       address.Address.AddressFamily == AddressFamily.InterNetwork &&
+                       !address.Address.ToString().StartsWith("169.254.", StringComparison.Ordinal) &&
+                       !IPAddress.IsLoopback(address.Address));
+        }
+        catch { return false; }
+    }
+
+    private static bool DnsServerListsEqual(IEnumerable<string>? first, IEnumerable<string>? second)
+    {
+        try
+        {
+            var left = (first ?? Array.Empty<string>())
+                .Select(value => IPAddress.Parse(value).ToString())
+                .OrderBy(value => value, StringComparer.OrdinalIgnoreCase).ToArray();
+            var right = (second ?? Array.Empty<string>())
+                .Select(value => IPAddress.Parse(value).ToString())
+                .OrderBy(value => value, StringComparer.OrdinalIgnoreCase).ToArray();
+            return left.SequenceEqual(right, StringComparer.OrdinalIgnoreCase);
+        }
+        catch { return false; }
+    }
+
+    private static void ValidateDnsAddressList(IEnumerable<string>? servers, AddressFamily family, string label)
+    {
+        if (servers is null) throw new InvalidDataException(label + " DNS listesi eksik.");
+        foreach (var value in servers)
+        {
+            if (!IPAddress.TryParse(value, out var address) || address.AddressFamily != family)
+                throw new InvalidDataException(label + " DNS yedeğinde geçersiz IP adresi bulundu.");
+        }
+    }
+
+    private static void ValidateDnsBackup(DnsBackup backup)
+    {
+        if (backup.SchemaVersion is < 1 or > 3)
+            throw new InvalidDataException("DNS yedeği desteklenmeyen sürümde.");
+        if (backup.InterfaceIndex <= 0 || string.IsNullOrWhiteSpace(backup.InterfaceName))
+            throw new InvalidDataException("DNS yedeğinde ağ arabirimi kimliği eksik.");
+        if (backup.Ipv4Servers is null || backup.Ipv6Servers is null)
+            throw new InvalidDataException("DNS yedeğinde önceki DNS listeleri eksik.");
+
+        ValidateDnsAddressList(backup.Ipv4Servers, AddressFamily.InterNetwork, "Önceki IPv4");
+        ValidateDnsAddressList(backup.Ipv6Servers, AddressFamily.InterNetworkV6, "Önceki IPv6");
+        if (!backup.Ipv4Automatic && backup.Ipv4Servers.Count == 0)
+            throw new InvalidDataException("Önceki statik IPv4 DNS sunucu listesi boş.");
+        if (backup.Ipv6Modified && !backup.Ipv6StackSupported)
+            throw new InvalidDataException("IPv6 etkin değilken IPv6 değişikliği işaretlenmiş.");
+        if (backup.Ipv6Modified && !backup.Ipv6Automatic && backup.Ipv6Servers.Count == 0)
+            throw new InvalidDataException("Önceki statik IPv6 DNS sunucu listesi boş.");
+
+        if (backup.SchemaVersion >= 2 && !Guid.TryParse(backup.InterfaceId, out _))
+            throw new InvalidDataException("DNS yedeğinin benzersiz bağdaştırıcı kimliği geçersiz.");
+
+        if (backup.SchemaVersion >= 3)
+        {
+            ValidateDnsAddressList(backup.AppliedIpv4Servers, AddressFamily.InterNetwork, "Uygulanan IPv4");
+            ValidateDnsAddressList(backup.AppliedIpv6Servers, AddressFamily.InterNetworkV6, "Uygulanan IPv6");
+            if (backup.AppliedIpv4Servers is null || backup.AppliedIpv4Servers.Count == 0)
+                throw new InvalidDataException("DNS yedeğinde uygulanan IPv4 sunucuları bulunamadı.");
+            if (backup.Ipv6Modified &&
+                (backup.AppliedIpv6Servers is null || backup.AppliedIpv6Servers.Count == 0))
+                throw new InvalidDataException("DNS yedeğinde uygulanan IPv6 sunucuları bulunamadı.");
+        }
+    }
+
+    private static NetworkInterface? FindNetworkInterfaceForBackup(DnsBackup backup)
+    {
+        if (Guid.TryParse(backup.InterfaceId, out _))
+            return FindNetworkInterfaceById(backup.InterfaceId);
+
+        var adapters = NetworkInterface.GetAllNetworkInterfaces();
+        var byName = adapters.FirstOrDefault(adapter =>
+            adapter.Name.Equals(backup.InterfaceName, StringComparison.OrdinalIgnoreCase));
+        if (byName is not null) return byName;
+
+        return adapters.FirstOrDefault(adapter =>
+        {
+            try { return adapter.GetIPProperties().GetIPv4Properties()?.Index == backup.InterfaceIndex; }
+            catch { return false; }
+        });
+    }
+
+    private static void EnsureDnsBackupStillOwnsCurrentSettings(DnsBackup backup)
+    {
+        // v1/v2 backups did not record our target DNS values; keep restore compatible after explicit user confirmation.
+        if (backup.SchemaVersion < 3) return;
+
+        var adapter = FindNetworkInterfaceForBackup(backup)
+            ?? throw new InvalidOperationException("Yedek alınan ağ bağdaştırıcısı bulunamadı. DNS yedeği korundu.");
+        var properties = adapter.GetIPProperties();
+        var actualIpv4 = properties.DnsAddresses
+            .Where(address => address.AddressFamily == AddressFamily.InterNetwork)
+            .Select(address => address.ToString());
+        if (HasStaticDnsConfig("Tcpip", adapter.Id) != true ||
+            !DnsServerListsEqual(actualIpv4, backup.AppliedIpv4Servers))
+            throw new InvalidOperationException("Mevcut IPv4 DNS ayarı BAYAT'ın uyguladığı değerlerle eşleşmiyor. Başka bir uygulama veya kullanıcı DNS ayarını değiştirmiş olabilir; dış değişikliklerin üzerine yazılmaması için geri yükleme durduruldu ve yedek korundu.");
+
+        if (backup.Ipv6Modified)
+        {
+            var actualIpv6 = properties.DnsAddresses
+                .Where(address => address.AddressFamily == AddressFamily.InterNetworkV6)
+                .Select(address => address.ToString());
+            if (HasStaticDnsConfig("Tcpip6", adapter.Id) != true ||
+                !DnsServerListsEqual(actualIpv6, backup.AppliedIpv6Servers))
+                throw new InvalidOperationException("Mevcut IPv6 DNS ayarı BAYAT'ın uyguladığı değerlerle eşleşmiyor. Dış değişikliklerin üzerine yazılmaması için geri yükleme durduruldu ve yedek korundu.");
+        }
+    }
+
+    private static async Task VerifyDnsProfileAppliedAsync(
+        string interfaceId, IEnumerable<string> ipv4Servers, IEnumerable<string> ipv6Servers, bool verifyIpv6)
+    {
+        for (var attempt = 0; attempt < 8; attempt++)
+        {
+            await Task.Delay(500);
+            var adapter = FindNetworkInterfaceById(interfaceId);
+            if (adapter is null) continue;
+
+            var properties = adapter.GetIPProperties();
+            var actualIpv4 = properties.DnsAddresses
+                .Where(address => address.AddressFamily == AddressFamily.InterNetwork)
+                .Select(address => address.ToString());
+            var ipv4Ok = HasStaticDnsConfig("Tcpip", interfaceId) == true &&
+                         DnsServerListsEqual(actualIpv4, ipv4Servers);
+
+            var ipv6Ok = true;
+            if (verifyIpv6)
+            {
+                var actualIpv6 = properties.DnsAddresses
+                    .Where(address => address.AddressFamily == AddressFamily.InterNetworkV6)
+                    .Select(address => address.ToString());
+                ipv6Ok = HasStaticDnsConfig("Tcpip6", interfaceId) == true &&
+                         DnsServerListsEqual(actualIpv6, ipv6Servers);
+            }
+
+            if (ipv4Ok && ipv6Ok) return;
+        }
+
+        throw new InvalidOperationException("Windows DNS ayarları uygulama sonrası beklenen IPv4/IPv6 sunucularıyla eşleşmedi. Güvenlik için önceki ayarlar otomatik geri alınacak.");
+    }
+
+    private static async Task VerifyDnsBackupRestoredAsync(DnsBackup backup)
+    {
+        for (var attempt = 0; attempt < 8; attempt++)
+        {
+            await Task.Delay(500);
+            var adapter = FindNetworkInterfaceForBackup(backup);
+            if (adapter is null) continue;
+
+            var properties = adapter.GetIPProperties();
+            var actualIpv4 = properties.DnsAddresses
+                .Where(address => address.AddressFamily == AddressFamily.InterNetwork)
+                .Select(address => address.ToString());
+            var ipv4ModeOk = HasStaticDnsConfig("Tcpip", adapter.Id) == !backup.Ipv4Automatic;
+            var ipv4ServersOk = backup.Ipv4Automatic || DnsServerListsEqual(actualIpv4, backup.Ipv4Servers);
+
+            var ipv6Ok = true;
+            if (backup.Ipv6StackSupported && backup.Ipv6Modified)
+            {
+                var actualIpv6 = properties.DnsAddresses
+                    .Where(address => address.AddressFamily == AddressFamily.InterNetworkV6)
+                    .Select(address => address.ToString());
+                var ipv6ModeOk = HasStaticDnsConfig("Tcpip6", adapter.Id) == !backup.Ipv6Automatic;
+                var ipv6ServersOk = backup.Ipv6Automatic || DnsServerListsEqual(actualIpv6, backup.Ipv6Servers);
+                ipv6Ok = ipv6ModeOk && ipv6ServersOk;
+            }
+
+            if (ipv4ModeOk && ipv4ServersOk && ipv6Ok) return;
+        }
+
+        throw new InvalidOperationException("Windows'un geri yüklenen DNS ayarları yedekle eşleşmedi. DNS yedeği silinmedi.");
     }
 
     private static string BuildDnsNetworkFingerprint(NetworkInterface adapter)
