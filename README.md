@@ -22,6 +22,14 @@ Resmî sürümler yayımlandığında dosyalar GitHub **Releases** sayfasında b
 
 ARM64 cihazlarda x64 kurulum dosyasını kullanmayın. İndirme sayfasında yayımlanmamış dosyalar henüz indirilebilir değildir.
 
+## Açık kaynak, test ve güvenlik şeffaflığı
+
+Bu proje GPL-3.0-only lisansı altında açık kaynak olarak yayımlanır. Kaynak kodu bu depoda herkes tarafından görüntülenebilir, incelenebilir ve lisans koşulları çerçevesinde yeniden derlenebilir. GitHub Actions yayın iş akışı, Windows üzerinde otomatik testleri çalıştırmadan x64 ve ARM64 paketlerini üretmez; test adımları başarısız olursa yayın paketleme aşamasına geçilmez.
+
+**Testlerin anlamı ve sınırları:** Otomatik testler, yalnızca test kapsamına alınmış davranışları kontrol eder. Testlerin başarılı olması kaynak kodunun her satırının bağımsız güvenlik denetiminden geçtiğini, hiçbir güvenlik açığı veya zararlı kod bulunmadığını ya da her donanımda hatasız çalışacağını kanıtlamaz. Proje için “kesinlikle zararlı kod içermez” veya “tamamen güvenlidir” garantisi verilmez. Kullanıcılar kaynak kodunu ve yayın iş akışını kendileri inceleyebilir.
+
+İndirilen dosyaların SHA256 değerini Release sayfasındaki eşleşen özetle karşılaştırın. GitHub Actions provenance/attestation bilgileri derleme kaynağını doğrulamaya yardımcı olur; dosyanın güvenli olduğunu tek başına kanıtlamaz ve Authenticode kod imzası değildir. Windows dosya özelliklerinde dijital imza/yayıncı bilgisi yoksa uygulama imzasızdır. SmartScreen uyarısını aşmayın; imzalı ve doğrulanmış bir sürüm yayımlanana kadar bu sınırlamayı dikkate alın.
+
 ## Güvenlik bildirimi
 
 **Önemli:** Authenticode kod imzası bulunmayan Windows uygulamaları SmartScreen tarafından “Bilinmeyen yayıncı” olarak gösterilebilir. SHA256 ve GitHub Actions provenance bilgileri dosya bütünlüğü ve derleme kaynağı doğrulamasına yardımcı olur; kod imzası veya SmartScreen itibarı sağlamaz.
