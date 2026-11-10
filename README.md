@@ -26,15 +26,17 @@ ARM64 cihazlarda x64 kurulum dosyasını kullanmayın. İndirme sayfasında yay�
 
 Bu proje GPL-3.0-only lisansı altında açık kaynak olarak yayımlanır. Kaynak kodu bu depoda herkes tarafından görüntülenebilir, incelenebilir ve lisans koşulları çerçevesinde yeniden derlenebilir. GitHub Actions yayın iş akışı, Windows üzerinde otomatik testleri çalıştırmadan x64 ve ARM64 paketlerini üretmez; test adımları başarısız olursa yayın paketleme aşamasına geçilmez.
 
-**Testlerin anlamı ve sınırları:** Otomatik testler, yalnızca test kapsamına alınmış davranışları kontrol eder. Testlerin başarılı olması kaynak kodunun her satırının bağımsız güvenlik denetiminden geçtiğini, hiçbir güvenlik açığı veya zararlı kod bulunmadığını ya da her donanımda hatasız çalışacağını kanıtlamaz. Proje için “kesinlikle zararlı kod içermez” veya “tamamen güvenlidir” garantisi verilmez. Kullanıcılar kaynak kodunu ve yayın iş akışını kendileri inceleyebilir.
+**Uygulamanın amacı ve test kapsamı:** Smart Network Optimizer; ağ bağdaştırıcısı ve bağlantı bilgilerini görüntülemek, canlı ping/RTT ölçümü yapmak, ölçüm sonuçlarını CSV olarak dışa aktarmak ve kullanıcı kontrolündeki ağ ayarı iş akışlarını sunmak için geliştirilmiştir. Uzaktan bilgisayar kontrolü veya kullanıcı parolalarını toplama, kişisel dosyaları gizlice aktarma gibi işlevler uygulamanın amaçlanan özellikleri değildir. Kaynak kodu herkesin incelemesine açıktır.
 
-İndirilen dosyaların SHA256 değerini Release sayfasındaki eşleşen özetle karşılaştırın. GitHub Actions provenance/attestation bilgileri derleme kaynağını doğrulamaya yardımcı olur; dosyanın güvenli olduğunu tek başına kanıtlamaz ve Authenticode kod imzası değildir. Windows dosya özelliklerinde dijital imza/yayıncı bilgisi yoksa uygulama imzasızdır. SmartScreen uyarısını aşmayın; imzalı ve doğrulanmış bir sürüm yayımlanana kadar bu sınırlamayı dikkate alın.
+GitHub Actions, Windows üzerinde otomatik testleri çalıştırır ve test aşaması başarısız olursa paket üretimine geçmez. Testler belirli senaryoları kontrol eder; tek başına bağımsız, satır satır bir güvenlik denetimi anlamına gelmez ve hiçbir yazılım için tüm olası hata ve güvenlik açıklarının bulunmadığını kanıtlamaz. Kullanıcılar kaynak kodunu, testleri ve yayın iş akışını depodan inceleyebilir.
+
+İndirilen dosyaların SHA256 değerini Release sayfasındaki eşleşen özetle karşılaştırın. GitHub Actions provenance/attestation bilgileri derleme kaynağını doğrulamaya yardımcı olur; dosyanın güvenli olduğunu tek başına kanıtlamaz ve Authenticode kod imzası değildir. Windows dosya özelliklerinde dijital imza/yayıncı bilgisi yoksa uygulama imzasızdır.
 
 ## Güvenlik bildirimi
 
 **Önemli:** Authenticode kod imzası bulunmayan Windows uygulamaları SmartScreen tarafından “Bilinmeyen yayıncı” olarak gösterilebilir. SHA256 ve GitHub Actions provenance bilgileri dosya bütünlüğü ve derleme kaynağı doğrulamasına yardımcı olur; kod imzası veya SmartScreen itibarı sağlamaz.
 
-SmartScreen uyarısını aşmanızı, “Yine de çalıştır” seçeneğini kullanmanızı veya Windows güvenlik korumalarını kapatmanızı önermiyoruz. Bir sürümün indirme sayfasında imza durumu açıkça belirtilmelidir.
+“Bilinmeyen yayıncı” uyarısı, tek başına uygulamanın zararlı olduğunun tespiti değildir; Windows'un güvenilir bir yayıncı kod imzasını doğrulayamadığını bildirir. Kullanıcıları uyarıyı aşmaya, “Yine de çalıştır” seçeneğini kullanmaya veya Windows güvenlik korumalarını kapatmaya yönlendirmiyoruz. İmza durumu her sürümün indirme sayfasında açıkça belirtilmelidir.
 
 ## Kullanım kılavuzu
 
