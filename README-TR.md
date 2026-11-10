@@ -18,12 +18,19 @@ Microsoft'un güncel .NET Windows kurulum tablosu, modern .NET'in Windows 10 des
 - Canlı örnekler uygulama belleğinde tutulur; uygulama kapandığında silinir. Kullanıcı isterse zaman damgası, başarılı/başarısız durumu, RTT ve yanıt durumunu CSV olarak dışa aktarabilir. Otomatik telemetri/ağ üzerinden gönderim eklenmemiştir.
 - İsteğe bağlı **Windows açılışında başlat** seçeneği yalnızca geçerli kullanıcı profili için `HKCU\Software\Microsoft\Windows\CurrentVersion\Run` girdisini yönetir. Yönetici izni istemez. Yalnızca yayınlanmış `SmartNetworkOptimizer.exe` üzerinden etkinleştirilebilir; kaldırma betiği bu başlangıç girdisini temizler.
 - `publish.ps1` ile self-contained, tek dosyalı win-x64 veya win-arm64 yayın hazırlanabilir. GitHub Actions workflow'u aynı iki hedef için Windows runner üzerinde build artifact üretir.
-- `installer/SmartNetworkOptimizer.iss`, win-x64 paketi için isteğe bağlı Inno Setup kullanıcı seviyesinde kurulum tanımıdır. Inno Setup ayrı yüklenmelidir; bu kaynak paketinde hazır kurulum EXE'si bulunmaz.
+- `installer/SmartNetworkOptimizer.iss`, win-x64 paketi için kullanıcı seviyesinde kurulum tanımıdır. GitHub Actions, win-x64 yayınında Inno Setup'ı kurup `SmartNetworkOptimizer-Setup-1.1.0-win-x64.exe` dosyasını otomatik üretir; kurulum EXE'si ve SHA256 dosyası ZIP paketleriyle birlikte artifact olarak saklanır ve sürüm etiketiyle açılan GitHub Release'e eklenir. ARM64 için taşınabilir ZIP paketi sağlanır; ARM64 kurulum sihirbazı bu sürümde sunulmaz.
 
 ### Platform ve destek notu
 
 - Proje WPF ve .NET 10 LTS kullanır. Microsoft'un güncel .NET 10 Windows destek tablosunda Windows 11'in desteklenen sürümleri yer alır; Windows 10 desteği ise LTSC/Enterprise sürümleriyle sınırlıdır. Windows 10 Home/Pro (genel tüketici sürümleri) için bu .NET 10 hedefinde resmi destek garantisi verilmez. Geniş Windows 10 tüketici desteği isteniyorsa ayrı bir .NET Framework 4.8 uyumlu hedef ve gerçek cihaz testleri gerekir.
 - .NET 10 LTS, Microsoft destek tablosunda Kasım 2028'e kadar desteklenen sürüm olarak listelenmektedir. SDK/Windows matrisi ve destek politikası yayın öncesi tekrar kontrol edilmelidir.
+
+### İndirme ve kurulum
+
+- Resmî sürüm yayımlandığında dosyalar GitHub deposunun **Releases** sayfasında listelenir. Windows 11 x64 için `SmartNetworkOptimizer-Setup-1.1.0-win-x64.exe` kurulum dosyasını; ARM64 cihazlar için `SmartNetworkOptimizer-win-arm64.zip` paketini kullanın.
+- Kurulum dosyasının yanında yayımlanan `.sha256` dosyasını indirin. PowerShell'de indirdiğiniz dosyanın SHA256 değerini `Get-FileHash .\SmartNetworkOptimizer-Setup-1.1.0-win-x64.exe -Algorithm SHA256` komutuyla hesaplayıp SHA256 dosyasındaki değerle karşılaştırın.
+- GitHub Actions artifact'ları test/önizleme içindir; resmî sürüm yerine geçmez. Sürüm etiketi ve Release yayımlanmadan önce kurulum akışı CI üzerinde doğrulanmalıdır.
+- Bu sürümde Authenticode kod imzası yoktur. GitHub provenance attestasyonu derlemenin kaynağını doğrulamaya yardımcı olur; Windows yayıncı imzası değildir ve SmartScreen uyarısız çalışmayı garanti etmez. Güvenilir sertifika ile imzalanmamış dosyaları bu gerçek saklanarak imzalıymış gibi tanıtmayın.
 
 ### v1.1.0 canlı izleme nasıl kullanılır?
 
