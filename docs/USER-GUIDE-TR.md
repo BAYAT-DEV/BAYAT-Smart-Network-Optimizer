@@ -15,6 +15,14 @@ https://github.com/BAYAT-DEV/BAYAT-Smart-Network-Optimizer/releases
 
 Dosya adları, sürüm ve mimari bilgisiyle eşleşmelidir. Başka sitelerden veya yeniden yüklenmiş dosyalardan indirmeyin.
 
+## 2. Açık kaynak, test ve güvenlik şeffaflığı
+
+Smart Network Optimizer GPL-3.0-only lisanslı açık kaynak bir projedir. Kaynak kodunu, test projesini ve GitHub Actions iş akışını bu depoda herkes inceleyebilir. Yayın iş akışı, Windows üzerinde otomatik testleri çalıştırır; test aşaması başarısız olursa paket üretimi/yayın adımına geçilmez.
+
+Otomatik testler yalnızca test kapsamındaki davranışları kontrol eder. Testlerin başarılı olması kodun her satırının bağımsız güvenlik denetiminden geçtiğini, hiçbir güvenlik açığı veya zararlı kod bulunmadığını ya da her Windows cihazında hatasız çalışacağını garanti etmez. Bu nedenle proje için “kesinlikle zararlı kod içermez” veya “tamamen güvenlidir” garantisi verilmez. Açık kaynak olması, kullanıcıların kodu inceleyebilmesini ve kendi derlemelerini oluşturabilmesini sağlar.
+
+SHA256 dosya bütünlüğü kontrolüne, GitHub Actions provenance bilgileri de derlemenin kaynağına ilişkin ek kanıt sağlar. Bunlar antivirüs taraması, bağımsız güvenlik denetimi veya Authenticode dijital imzasının yerine geçmez.
+
 ## 2. Önemli güvenlik bilgisi
 
 Bu sürümün Windows EXE dosyaları Authenticode kod imzasıyla imzalanmamış olabilir. Windows SmartScreen “Windows bilgisayarınızı korudu” veya “Bilinmeyen yayıncı” uyarısı gösterebilir.
