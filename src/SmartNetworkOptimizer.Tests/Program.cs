@@ -1012,6 +1012,58 @@ Test("DNS history persistence round-trips all catalog entries and preserves prev
         () => DnsResolverHistoryStore.Load(historyPath, otherFingerprint),
         "Farklı ağ kimliğiyle DNS geçmişi okunmasına izin verildi.");
 
+    // Yeni kataloğa geçişten önce kaydedilmiş 43 adresli oturumlar korunmalı.
+    var legacyResults = firstSession.Results
+        .Where(result => !DnsResolverCatalog.CatalogExpansionServers.Contains(
+            result.Server,
+            StringComparer.Ordinal))
+        .ToArray();
+
+    var legacySession = new DnsResolverBenchmarkSession(
+        firstSession.CompletedAt,
+        legacyResults);
+
+    var mixedHistoryPath = Path.Combine(testRoot, "mixed-catalog-history.json");
+    var mixedHistory = new DnsResolverHistoryDocument(
+        DnsResolverHistoryStore.CurrentSchemaVersion,
+        fingerprint,
+        new List<DnsResolverBenchmarkSession>
+        {
+            legacySession,
+            secondSession
+        });
+
+    DnsResolverHistoryStore.Save(mixedHistoryPath, mixedHistory);
+
+    var mixedLoaded = DnsResolverHistoryStore.Load(mixedHistoryPath, fingerprint);
+
+    Check(
+        mixedLoaded.Sessions.Count == 2,
+        "Eski ve yeni katalog oturumları birlikte korunmadı.");
+
+    Check(
+        mixedLoaded.Sessions[0].Results.Count == DnsResolverCatalog.PreviousCatalogCount,
+        "Eski 43 adresli DNS oturumu korunmadı.");
+
+    Check(
+        mixedLoaded.Sessions[1].Results.Count == DnsResolverCatalog.ExpectedCount,
+        "Yeni DNS kataloğuyla oluşturulan oturum eksik.");
+
+    var missingLegacyAddresses = DnsResolverCatalog.All
+        .Select(definition => definition.Server)
+        .Except(
+            mixedLoaded.Sessions[0].Results.Select(result => result.Server),
+            StringComparer.Ordinal)
+        .OrderBy(server => server, StringComparer.Ordinal)
+        .ToArray();
+
+    Check(
+        missingLegacyAddresses.SequenceEqual(
+            DnsResolverCatalog.CatalogExpansionServers.OrderBy(
+                server => server,
+                StringComparer.Ordinal)),
+        "Eski DNS oturumunda yeni eklenenler dışında adres eksik.");
+
     Console.WriteLine("DNS geçmiş test alanı: " + testRoot);
 });
 Console.WriteLine($"TEST SONUCU: {passed} başarılı, {failed} başarısız.");
