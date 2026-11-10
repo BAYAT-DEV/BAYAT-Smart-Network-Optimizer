@@ -201,11 +201,11 @@
                             <StackPanel>
                                 <TextBlock Text="BAYAT | DNS YÖNETİMİ" FontWeight="Bold" Foreground="#14213D" Margin="0,0,0,10" />
                                 <WrapPanel>
-                                    <Button x:Name="FlushButton" Content="DNS Önbelleğini Temizle" Click="FlushButton_Click" IsEnabled="False" ToolTip="Bu sürümde güvenlik nedeniyle devre dışıdır." />
-                                    <Button x:Name="DnsButton" Content="Cloudflare DNS Uygula" Click="DnsButton_Click" Background="#DBEAFE" IsEnabled="False" ToolTip="Bu sürümde güvenlik nedeniyle devre dışıdır." />
+                                    <Button x:Name="FlushButton" Content="DNS Önbelleğini Temizle" Click="FlushButton_Click" ToolTip="Kullanıcı onayı ve Windows yönetici izniyle DNS önbelleğini temizler." />
+                                    <Button x:Name="DnsButton" Content="Cloudflare DNS Uygula" Click="DnsButton_Click" Background="#DBEAFE" ToolTip="Önce mevcut DNS ayarlarını yedekler; kullanıcı onayı ve Windows yönetici izni ister." />
                                     <Button x:Name="BenchmarkDnsButton" Content="DNS Hızını Karşılaştır" Click="BenchmarkDnsButton_Click" />
-                                    <Button x:Name="ApplyBestDnsButton" Content="Ölçümde En Hızlı DNS'yi Uygula" Click="ApplyBestDnsButton_Click" Background="#DCFCE7" IsEnabled="False" ToolTip="Bu sürümde güvenlik nedeniyle devre dışıdır." />
-                                    <Button x:Name="RestoreButton" Content="Önceki DNS'yi Geri Yükle" Click="RestoreButton_Click" Background="#FCE8E6" IsEnabled="False" ToolTip="Bu sürümde güvenlik nedeniyle devre dışıdır." />
+                                    <Button x:Name="ApplyBestDnsButton" Content="Ölçümde En Hızlı DNS'yi Uygula" Click="ApplyBestDnsButton_Click" Background="#DCFCE7" ToolTip="Yeterli güvenilir oturum varsa en iyi iki sunuculu profili yedek, onay ve UAC ile uygular." />
+                                    <Button x:Name="RestoreButton" Content="Önceki DNS'yi Geri Yükle" Click="RestoreButton_Click" Background="#FCE8E6" IsEnabled="False" ToolTip="Yalnızca BAYAT tarafından oluşturulmuş DNS yedeği varsa etkinleşir; onay ve UAC ister." />
                                 </WrapPanel>
                                 <TextBlock Text="DNS yanıt süresi oyun sunucusuna giden mevcut bağlantının ping değeri değildir. DNS değişikliği yalnızca yeni alan adı çözümlemelerini etkiler."
                                            Foreground="#64748B" FontSize="11" TextWrapping="Wrap" />
@@ -214,7 +214,7 @@
                         <Border Style="{StaticResource CardBorder}" Margin="0,0,0,14">
                             <StackPanel>
                                 <TextBlock Text="BAYAT | GÜVENLİK İLKELERİ" FontWeight="Bold" Foreground="#14213D" />
-                                <TextBlock Text="• Donanım ve sürücü bilgileri salt okunur olarak analiz edilir.&#xA;• DNS, RSS ve ağ ayarlarını değiştirme ve geri yükleme işlemleri bu sürümde güvenlik nedeniyle devre dışıdır.&#xA;• Yönetici yetkisiyle sistem değişikliği veya otomatik ayar uygulanmaz.&#xA;• Evrensel Registry/TCP ayarları otomatik değiştirilmez."
+                                <TextBlock Text="• Donanım ve sürücü bilgileri salt okunur olarak analiz edilir.&#xA;• DNS değişiklikleri yalnızca kullanıcı onayı ve Windows UAC izniyle yapılır; önce IPv4/IPv6 yedeği alınır ve sonuç doğrulanır.&#xA;• DNS geri yüklemesi yalnızca uygulamanın oluşturduğu yedek üzerinden ve ayrıca onayla yapılır.&#xA;• RSS ve genel Registry/TCP ayarları bu aşamada devre dışıdır; körlemesine veya otomatik sistem ayarı uygulanmaz."
                                            Foreground="#475569" FontSize="12" TextWrapping="Wrap" Margin="0,8,0,0" />
                             </StackPanel>
                         </Border>
