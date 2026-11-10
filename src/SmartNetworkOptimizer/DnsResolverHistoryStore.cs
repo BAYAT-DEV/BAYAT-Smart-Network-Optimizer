@@ -165,7 +165,8 @@ internal static class DnsResolverHistoryStore
                 session.CompletedAt == default ||
                 session.CompletedAt > DateTimeOffset.UtcNow.AddMinutes(10) ||
                 session.Results is null ||
-                session.Results.Count != DnsResolverCatalog.ExpectedCount)
+                (session.Results.Count != DnsResolverCatalog.ExpectedCount &&
+                 session.Results.Count != DnsResolverCatalog.PreviousCatalogCount))
             {
                 throw new InvalidDataException("DNS geçmişinde geçersiz oturum bulundu.");
             }
@@ -260,8 +261,20 @@ internal static class DnsResolverHistoryStore
                 }
             }
 
-            if (seenServers.Count != DnsResolverCatalog.ExpectedCount)
-                throw new InvalidDataException("DNS geçmişinde katalogdaki tüm adresler bulunmuyor.");
+            var missingServers = catalog.Keys
+                .Where(server => !seenServers.Contains(server))
+                .ToHashSet(StringComparer.Ordinal);
+
+            var compatibleExpansionServers = DnsResolverCatalog.CatalogExpansionServers
+                .ToHashSet(StringComparer.Ordinal);
+
+            if (seenServers.Count != session.Results.Count ||
+                (missingServers.Count > 0 &&
+                 !missingServers.SetEquals(compatibleExpansionServers)))
+            {
+                throw new InvalidDataException(
+                    "DNS geçmişinde katalogdaki adresler eksik veya desteklenmeyen biçimde değişmiş.");
+            }
         }
     }
 
