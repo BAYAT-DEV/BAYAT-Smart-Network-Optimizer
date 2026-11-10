@@ -18,7 +18,9 @@ internal static class DnsResolverCatalog
 {
     public const int UserProvidedServerCount = 41;
     public const int ExistingBuiltInServerCount = 2;
-    public const int ExpectedCount = UserProvidedServerCount + ExistingBuiltInServerCount;
+    public const int AdditionalVerifiedServerCount = 2;
+    public const int ExpectedCount =
+        UserProvidedServerCount + ExistingBuiltInServerCount + AdditionalVerifiedServerCount;
 
     private static readonly DnsResolverDefinition[] Entries =
     {
@@ -49,6 +51,9 @@ internal static class DnsResolverCatalog
 
         new("Control D", "controld-unfiltered", "Unfiltered", "76.76.2.0", true, true, "Filtresiz genel çözümleme profili."),
         new("Control D", "controld-unfiltered", "Unfiltered", "76.76.10.0", true, true, "Filtresiz genel çözümleme profili."),
+
+        new("Control D", "controld-malware", "Malware - zararlı alan adı engelleme", "76.76.2.1", false, false, "Control D'nin ücretsiz Malware filtresi. Şimdilik yalnızca ölçüm; uygulama adayı değildir."),
+        new("Control D", "controld-malware", "Malware - zararlı alan adı engelleme", "76.76.10.1", false, false, "Control D'nin ücretsiz Malware filtresi. Şimdilik yalnızca ölçüm; uygulama adayı değildir."),
 
         new("AdGuard", "adguard-default", "Default - filtreleme", "94.140.14.14", true, true, "Reklam, izleyici ve zararlı alan adı filtrelemesi."),
         new("AdGuard", "adguard-default", "Default - filtreleme", "94.140.15.15", true, true, "Reklam, izleyici ve zararlı alan adı filtrelemesi."),
