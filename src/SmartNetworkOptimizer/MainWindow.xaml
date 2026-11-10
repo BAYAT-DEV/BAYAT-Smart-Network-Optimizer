@@ -4,7 +4,7 @@
 <Window x:Class="SmartNetworkOptimizer.MainWindow"
         xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
         xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
-        Title="BAYAT | Smart Network Optimizer v1.1.0" Icon="pack://application:,,,/Assets/BAYAT.ico" Height="920" Width="1440"
+        Title="BAYAT | Smart Network Optimizer v1.1.3" Icon="pack://application:,,,/Assets/BAYAT.ico" Height="920" Width="1440"
         MinHeight="760" MinWidth="1120" WindowStartupLocation="CenterScreen"
         Background="#F3F6FB">
     <Window.Resources>
@@ -54,7 +54,7 @@
                     <TextBlock Text="BAYAT SMART NETWORK OPTIMIZER" Foreground="White" FontSize="22" FontWeight="Bold" />
                     <TextBlock Text="Kişiye özel Windows ağ analizi • Kontrollü optimizasyon • Ölçülebilir sonuçlar"
                                Foreground="#C8D5E8" FontSize="12" Margin="0,5,0,0" />
-                    <TextBlock Text="v1.1.0  |  Yerel analiz — verileriniz bu bilgisayarda kalır"
+                    <TextBlock Text="v1.1.3  |  Yerel analiz — verileriniz bu bilgisayarda kalır"
                                Foreground="#8FA5C2" FontSize="10" Margin="0,5,0,0" />
                 </StackPanel>
                 <Button x:Name="ScanButton" Grid.Column="1" Content="SİSTEMİ TARA" Click="ScanButton_Click"

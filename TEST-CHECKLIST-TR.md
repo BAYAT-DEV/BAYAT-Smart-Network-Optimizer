@@ -1,4 +1,4 @@
-# Windows test kontrol listesi — v1.1.2
+# Windows test kontrol listesi — v1.1.3
 
 Bu sürüm için Windows cihazlarında gerçek doğrulama gereklidir. Statik XAML kontrolü, gerçek Windows derlemesinin veya donanım testinin yerine geçmez.
 
@@ -132,6 +132,15 @@ Bu kontrol listesi gerçek Windows donanımında çalıştırılmalıdır. Testl
 
 Not: Bu geliştirme ortamında .NET SDK/Windows PowerShell bulunmadığından .NET derlemesi ve bu Windows test maddeleri çalıştırılmadı. Derleme/gerçek donanım testleri, Windows 10/11 sisteminde yapılmalıdır.
 
+
+## v1.1.3 simge ve sürüm kabul kontrolleri
+
+- [ ] Proje, Assembly, File ve Informational sürümleri 1.1.3 ile eşleşir.
+- [ ] İndirilen kurulum EXE dosyası Windows Gezgini'nde BAYAT simgesiyle görünür.
+- [ ] ZIP'ten çıkarılan SmartNetworkOptimizer.exe BAYAT simgesiyle görünür.
+- [ ] Uygulama penceresinin başlık simgesinde BAYAT logosu görünür.
+- [ ] Uygulama çalışırken görev çubuğunda BAYAT logosu görünür.
+- [ ] Normal Release, self-contained x64 ve ZIP'ten çıkarılmış EXE üzerinde simge testi yapılır.
 
 ## v1.1.2 kurulum ve sürüm kabul kontrolleri
 

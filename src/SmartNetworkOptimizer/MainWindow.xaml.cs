@@ -65,6 +65,14 @@ public partial class MainWindow : Window
         InitializeComponent();
         Loaded += async (_, _) =>
         {
+            var windowIcon = Icon;
+            if (windowIcon is not null)
+            {
+                Icon = null;
+                Icon = windowIcon;
+                await Task.Yield();
+            }
+
             RefreshDashboardConnection();
             await ScanSystemAsync();
             RenderLiveChart();

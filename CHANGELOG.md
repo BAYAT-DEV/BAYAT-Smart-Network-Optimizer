@@ -1,5 +1,12 @@
 # Değişiklik Günlüğü
 
+## v1.1.3 — BAYAT simge ve sürüm düzeltmesi
+
+- Uygulama yüklenirken pencere simgesi yenilenerek görev çubuğunda BAYAT logosunun görünmesi düzeltildi.
+- Uygulama penceresinin başlığı ve ana ekrandaki sürüm bilgisi 1.1.3 ile eşitlendi.
+- Normal Release ve self-contained x64 yayınında EXE dosyası, ZIP'ten çıkarılmış EXE ve görev çubuğu simgeleri doğrulandı.
+
+
 ## v1.1.2 — Kurulum ve sürüm tutarlılığı
 
 - Inno Setup kurulum sihirbazındaki Türkçe metin kodlaması düzeltildi.

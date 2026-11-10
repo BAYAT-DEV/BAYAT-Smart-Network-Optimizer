@@ -1,6 +1,6 @@
 # BAYAT Smart Network Optimizer — Kullanım Kılavuzu
 
-**Sürüm:** 1.1.2
+**Sürüm:** 1.1.3
 **Yayıncı:** BAYAT  
 **Lisans:** GPL-3.0-only
 
@@ -10,7 +10,7 @@ Yalnızca resmî GitHub deposunun **Releases** bölümünde yayımlanan dosyalar
 
 https://github.com/BAYAT-DEV/BAYAT-Smart-Network-Optimizer/releases
 
-- **Windows x64:** `SmartNetworkOptimizer-Setup-1.1.2-win-x64.exe` kurulum paketi veya `SmartNetworkOptimizer-win-x64.zip` taşınabilir paket.
+- **Windows x64:** `SmartNetworkOptimizer-Setup-1.1.3-win-x64.exe` kurulum paketi veya `SmartNetworkOptimizer-win-x64.zip` taşınabilir paket.
 - **Windows ARM64:** `SmartNetworkOptimizer-win-arm64.zip` paketi. x64 kurulum sihirbazı ARM64 için değildir.
 
 Dosya adları, sürüm ve mimari bilgisiyle eşleşmelidir. Başka sitelerden veya yeniden yüklenmiş dosyalardan indirmeyin.
