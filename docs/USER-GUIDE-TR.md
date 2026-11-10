@@ -17,17 +17,17 @@ Dosya adları, sürüm ve mimari bilgisiyle eşleşmelidir. Başka sitelerden ve
 
 ## 2. Açık kaynak, test ve güvenlik şeffaflığı
 
-Smart Network Optimizer GPL-3.0-only lisanslı açık kaynak bir projedir. Kaynak kodunu, test projesini ve GitHub Actions iş akışını bu depoda herkes inceleyebilir. Yayın iş akışı, Windows üzerinde otomatik testleri çalıştırır; test aşaması başarısız olursa paket üretimi/yayın adımına geçilmez.
+Smart Network Optimizer; ağ bağdaştırıcısı ve bağlantı bilgilerini görüntülemek, canlı ping/RTT ölçümü yapmak, ölçüm sonuçlarını CSV olarak dışa aktarmak ve kullanıcı kontrolündeki ağ ayarı iş akışlarını sunmak için geliştirilmiştir. Uzaktan bilgisayar kontrolü veya kullanıcı parolalarını toplama, kişisel dosyaları gizlice aktarma gibi işlevler uygulamanın amaçlanan özellikleri değildir. GPL-3.0-only lisanslı açık kaynak projedir; kaynak kodunu, test projesini ve GitHub Actions iş akışını bu depoda herkes inceleyebilir.
 
-Otomatik testler yalnızca test kapsamındaki davranışları kontrol eder. Testlerin başarılı olması kodun her satırının bağımsız güvenlik denetiminden geçtiğini, hiçbir güvenlik açığı veya zararlı kod bulunmadığını ya da her Windows cihazında hatasız çalışacağını garanti etmez. Bu nedenle proje için “kesinlikle zararlı kod içermez” veya “tamamen güvenlidir” garantisi verilmez. Açık kaynak olması, kullanıcıların kodu inceleyebilmesini ve kendi derlemelerini oluşturabilmesini sağlar.
+Yayın iş akışı, Windows üzerinde otomatik testleri çalıştırır; test aşaması başarısız olursa paket üretimi/yayın adımına geçilmez. Otomatik testler belirli senaryoları kontrol eder; tek başına bağımsız, satır satır bir güvenlik denetimi anlamına gelmez ve hiçbir yazılım için tüm olası hata ve güvenlik açıklarının bulunmadığını kanıtlamaz. Açık kaynak olması, kullanıcıların kodu inceleyebilmesini ve kendi derlemelerini oluşturabilmesini sağlar.
 
 SHA256 dosya bütünlüğü kontrolüne, GitHub Actions provenance bilgileri de derlemenin kaynağına ilişkin ek kanıt sağlar. Bunlar antivirüs taraması, bağımsız güvenlik denetimi veya Authenticode dijital imzasının yerine geçmez.
 
 ## 2. Önemli güvenlik bilgisi
 
-Bu sürümün Windows EXE dosyaları Authenticode kod imzasıyla imzalanmamış olabilir. Windows SmartScreen “Windows bilgisayarınızı korudu” veya “Bilinmeyen yayıncı” uyarısı gösterebilir.
+Bu sürümün Windows EXE dosyaları Authenticode kod imzasıyla imzalanmamıştır. Windows SmartScreen “Windows bilgisayarınızı korudu” veya “Bilinmeyen yayıncı” uyarısı gösterebilir. “Bilinmeyen yayıncı” uyarısı, tek başına uygulamanın zararlı olduğunun tespiti değildir; Windows'un güvenilir bir yayıncı kod imzasını doğrulayamadığını bildirir.
 
-Bu uyarıyı geçmeniz, “Yine de çalıştır” seçeneğini kullanmanız veya Windows güvenlik korumalarını kapatmanız önerilmez. Dijital imza ve yayıncı doğrulaması tamamlanana kadar dosyayı çalıştırmayın. GitHub Actions tarafından sağlanan SHA256 özeti ve provenance doğrulaması, dosyanın bütünlüğü/kaynağı hakkında ek kanıt sağlar; Authenticode imzasının veya SmartScreen itibarının yerine geçmez.
+Kullanıcıları bu uyarıyı aşmaya, “Yine de çalıştır” seçeneğini kullanmaya veya Windows güvenlik korumalarını kapatmaya yönlendirmiyoruz. Kaynak kodu, SHA256 özeti ve provenance bilgileri inceleme/doğrulama için sunulur; bunlar Authenticode imzasının veya SmartScreen itibarının yerine geçmez. Uyarı ve imza durumu hakkında karar vermeden önce bu sınırlamayı dikkate alın.
 
 ## 3. SHA256 doğrulaması
 
@@ -45,8 +45,8 @@ Get-FileHash .\SmartNetworkOptimizer-win-x64.zip -Algorithm SHA256
 
 1. Resmî Release sayfasından x64 kurulum dosyasını indirin.
 2. İndirme tamamlandığında dosyanın SHA256 değerini doğrulayın.
-3. İmza/yayıncı uyarısı varsa güvenlik uyarısını aşmayın; dosyayı çalıştırmayın.
-4. İmza ve güvenlik kontrolleri tamamlandıktan sonra kurulum sihirbazını başlatın.
+3. SmartScreen “Bilinmeyen yayıncı” uyarısı gösterebilir; bu uyarı tek başına zararlı yazılım tespiti değildir, ancak yayıncı imzasının doğrulanamadığını belirtir. Kullanıcıları uyarıyı aşmaya yönlendirmiyoruz.
+4. Kaynak kodu, sürüm bilgisi, SHA256 özeti ve provenance açıklamasını inceleyerek kendi güvenlik değerlendirmenizi yapın. Windows güvenlik korumalarını kapatmayın.
 5. Kurulum kullanıcı profili altındaki `%LOCALAPPDATA%\Programs\SmartNetworkOptimizer` klasörüne yapılır; yönetici izni gerektirmemesi amaçlanmıştır.
 6. İsteğe bağlı masaüstü kısayolunu seçebilirsiniz.
 
