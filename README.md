@@ -1,3 +1,7 @@
+<p align="center">
+  <img src="https://raw.githubusercontent.com/BAYAT-DEV/BAYAT-Smart-Network-Optimizer/main/src/SmartNetworkOptimizer/Assets/BAYAT.ico" alt="BAYAT Smart Network Optimizer" width="160">
+</p>
+
 # BAYAT Smart Network Optimizer
 
 Windows için ağ bağlantısı, bağdaştırıcı envanteri ve bağlantı ölçümlerini görüntülemeye yardımcı olan WPF masaüstü uygulaması.
