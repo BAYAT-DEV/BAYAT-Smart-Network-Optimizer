@@ -1662,9 +1662,18 @@ public partial class MainWindow : Window
 
     private async void BenchmarkDnsButton_Click(object sender, RoutedEventArgs e)
     {
-        if (_activeAdapter is null)
+        if (!IsUsableDnsAdapter(_activeAdapter))
         {
-            ShowBAYATMessageBox("Önce sistem taraması yapın ve aktif internet bağlantısı olduğundan emin olun.", "DNS karşılaştırması");
+            ShowBAYATMessageBox("DNS karşılaştırması için varsayılan ağ geçidi bulunan etkin fiziksel Ethernet/Wi-Fi bağlantısı gerekli. Önce sistem taraması yapın.", "DNS karşılaştırması");
+            return;
+        }
+
+        var benchmarkAdapterId = _activeAdapter!.Id;
+        string initialNetworkFingerprint;
+        try { initialNetworkFingerprint = BuildDnsNetworkFingerprint(_activeAdapter); }
+        catch (Exception ex)
+        {
+            ShowBAYATMessageBox("Ağ kimliği güvenilir biçimde okunamadı; DNS testi başlatılmadı: " + ex.Message, "DNS güvenlik kontrolü", MessageBoxButton.OK, MessageBoxImage.Warning);
             return;
         }
 
@@ -1675,6 +1684,19 @@ public partial class MainWindow : Window
 
             _resolverBenchmarks.Clear();
             _resolverBenchmarks.AddRange(results);
+
+            var adapterAfterBenchmark = FindNetworkInterfaceById(benchmarkAdapterId);
+            if (!IsUsableDnsAdapter(adapterAfterBenchmark) ||
+                !string.Equals(initialNetworkFingerprint, BuildDnsNetworkFingerprint(adapterAfterBenchmark!), StringComparison.Ordinal))
+            {
+                _resolverBenchmarks.Clear();
+                _dnsBenchmarkSessions.Clear();
+                _dnsBenchmarkFingerprint = null;
+                AppendLine("\n[DNS GÜVENLİK] Test sırasında aktif ağ kimliği değişti. Karışık ağ koşullarından gelen sonuçlar geçmişe kaydedilmedi ve DNS uygulaması için kullanılmayacak.");
+                StatusText.Text = "Ağ testi sırasında bağlantı değişti; DNS ölçümü geçersiz sayıldı. Yeniden test edin.";
+                ShowBAYATMessageBox("DNS ölçümü sırasında ağ bağlantısı veya ağ kimliği değişti. Bu oturum güvenilir sıralamaya eklenmedi. Aynı bağlantı kararlı hâle geldikten sonra yeniden test yapın.", "DNS ölçümü iptal edildi", MessageBoxButton.OK, MessageBoxImage.Warning);
+                return;
+            }
 
             var currentSession = new DnsResolverBenchmarkSession(
                 DateTimeOffset.Now,
