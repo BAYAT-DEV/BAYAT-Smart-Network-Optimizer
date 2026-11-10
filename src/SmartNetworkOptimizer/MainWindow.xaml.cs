@@ -1853,9 +1853,7 @@ public partial class MainWindow : Window
     }
     private async void ApplyBestDnsButton_Click(object sender, RoutedEventArgs e)
     {
-        if (_activeAdapter is null ||
-            string.IsNullOrWhiteSpace(_dnsBenchmarkFingerprint) ||
-            !string.Equals(_dnsBenchmarkFingerprint, BuildDnsNetworkFingerprint(_activeAdapter), StringComparison.Ordinal))
+        if (!HasCurrentDnsBenchmark())
         {
             _dnsBenchmarkSessions.Clear();
             _resolverBenchmarks.Clear();
@@ -2205,6 +2203,11 @@ public partial class MainWindow : Window
 
         var adapter = FindNetworkInterfaceForBackup(backup)
             ?? throw new InvalidOperationException("Yedek alınan ağ bağdaştırıcısı bulunamadı. DNS yedeği korundu.");
+        if (!IsPhysicalNetworkAdapter(adapter.Id) ||
+            (adapter.NetworkInterfaceType != NetworkInterfaceType.Ethernet &&
+             adapter.NetworkInterfaceType != NetworkInterfaceType.Wireless80211))
+            throw new InvalidOperationException("Yedek alınan ağ bağdaştırıcısı artık fiziksel Ethernet/Wi-Fi olarak doğrulanamıyor. DNS yedeği korundu.");
+
         var properties = adapter.GetIPProperties();
         var actualIpv4 = properties.DnsAddresses
             .Where(address => address.AddressFamily == AddressFamily.InterNetwork)
@@ -2681,6 +2684,20 @@ public partial class MainWindow : Window
         if (status is not null) StatusText.Text = status;
     }
 
+    private bool HasCurrentDnsBenchmark()
+    {
+        if (_activeAdapter is null || string.IsNullOrWhiteSpace(_dnsBenchmarkFingerprint))
+            return false;
+        try
+        {
+            return string.Equals(
+                _dnsBenchmarkFingerprint,
+                BuildDnsNetworkFingerprint(_activeAdapter),
+                StringComparison.Ordinal);
+        }
+        catch { return false; }
+    }
+
     private void UpdateDnsButtons()
     {
         var hasActiveAdapter = IsUsableDnsAdapter(_activeAdapter);
@@ -2693,8 +2710,7 @@ public partial class MainWindow : Window
 
         var hasTrustedProfile = false;
         if (hasActiveAdapter && !backupExists &&
-            !string.IsNullOrWhiteSpace(_dnsBenchmarkFingerprint) &&
-            string.Equals(_dnsBenchmarkFingerprint, BuildDnsNetworkFingerprint(_activeAdapter!), StringComparison.Ordinal) &&
+            HasCurrentDnsBenchmark() &&
             _dnsBenchmarkSessions.Count >= DnsResolverRanking.MinimumTrustedSessionCount)
         {
             try
