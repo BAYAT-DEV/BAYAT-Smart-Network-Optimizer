@@ -30,6 +30,7 @@ public partial class MainWindow : Window
     private readonly Queue<LivePingSample> _liveSamples = new();
     private bool _livePingInFlight;
     private bool _isBusy;
+    private string? _dnsBenchmarkFingerprint;
     private bool _loadingStartupPreference;
     private readonly string _appDataDir = Path.Combine(
         Environment.GetFolderPath(Environment.SpecialFolder.LocalApplicationData),
@@ -461,6 +462,9 @@ public partial class MainWindow : Window
                 _lastNicProperties = Array.Empty<NicOptimizationAdvisor.DriverProperty>();
                 _lastNicAdapterId = null;
                 _lastNicIsPhysical = false;
+                _dnsBenchmarkSessions.Clear();
+                _resolverBenchmarks.Clear();
+                _dnsBenchmarkFingerprint = null;
             }
             _lastPingResults.Clear();
             var compatibilityNotice = PlatformCompatibility.GetWindows10Notice();
@@ -1682,6 +1686,7 @@ public partial class MainWindow : Window
             try
             {
                 var fingerprint = BuildDnsNetworkFingerprint(_activeAdapter);
+                _dnsBenchmarkFingerprint = fingerprint;
                 var historyPath = DnsResolverHistoryStore.GetHistoryPath(
                     _appDataDir,
                     fingerprint);
@@ -2688,6 +2693,8 @@ public partial class MainWindow : Window
 
         var hasTrustedProfile = false;
         if (hasActiveAdapter && !backupExists &&
+            !string.IsNullOrWhiteSpace(_dnsBenchmarkFingerprint) &&
+            string.Equals(_dnsBenchmarkFingerprint, BuildDnsNetworkFingerprint(_activeAdapter!), StringComparison.Ordinal) &&
             _dnsBenchmarkSessions.Count >= DnsResolverRanking.MinimumTrustedSessionCount)
         {
             try
