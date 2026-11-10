@@ -186,12 +186,16 @@ internal static class DnsResolverRanking
                         .Select(statusGroup =>
                             $"{statusGroup.Key}: {statusGroup.Count()}"));
 
+            var currentDefinition = DnsResolverCatalog.All.FirstOrDefault(definition =>
+                string.Equals(definition.ProfileId, entries[0].ProfileId, StringComparison.Ordinal) &&
+                string.Equals(definition.Server, entries[0].Server, StringComparison.Ordinal));
+
             aggregates.Add(new DnsResolverAggregateResult(
                 entries[0].Provider,
                 entries[0].ProfileId,
                 entries[0].Server,
-                entries.All(entry => entry.IsApplicationCandidate),
-                entries[0].ApplicationNotice,
+                currentDefinition?.IsApplicationCandidate ?? entries.All(entry => entry.IsApplicationCandidate),
+                currentDefinition?.ApplicationNotice ?? entries[0].ApplicationNotice,
                 entries.Length,
                 passingSessionCount,
                 requestedCount,
@@ -212,7 +216,8 @@ internal static class DnsResolverRanking
     }
 
     internal static DnsResolverAggregateResult? SelectBestReliableIndividual(
-        IEnumerable<DnsResolverBenchmarkSession> sessions)
+        IEnumerable<DnsResolverBenchmarkSession> sessions,
+        IEnumerable<DnsResolverProfileDefinition>? profiles = null)
     {
         if (sessions is null)
             throw new ArgumentNullException(nameof(sessions));
@@ -224,14 +229,22 @@ internal static class DnsResolverRanking
         if (sessionArray.Length < MinimumTrustedSessionCount)
             return null;
 
-        var requiredPassingSessions = (int)Math.Ceiling(
-            sessionArray.Length * (2d / 3d));
+        var profileArray = profiles?.ToArray() ?? Array.Empty<DnsResolverProfileDefinition>();
+        var comparableSessions = profileArray.Length == 0
+            ? sessionArray
+            : GetComparableTrailingSessions(sessionArray, profileArray);
 
-        return AggregateSessions(sessionArray)
+        if (comparableSessions.Length < MinimumTrustedSessionCount)
+            return null;
+
+        var requiredPassingSessions = (int)Math.Ceiling(
+            comparableSessions.Length * (2d / 3d));
+
+        return AggregateSessions(comparableSessions)
             .Where(result =>
                 result.IsApplicationCandidate &&
-                result.SessionCount == sessionArray.Length &&
-                result.RequestedCount == sessionArray.Length * SamplesPerResolverSession &&
+                result.SessionCount == comparableSessions.Length &&
+                result.RequestedCount == comparableSessions.Length * SamplesPerResolverSession &&
                 result.SuccessRate >= MinimumAggregateSuccessRate &&
                 result.PassingSessionCount >= requiredPassingSessions &&
                 result.MedianMs.HasValue &&
@@ -258,17 +271,24 @@ internal static class DnsResolverRanking
             .TakeLast(MaximumStoredSessions)
             .ToArray();
 
-        if (sessionArray.Length < MinimumTrustedSessionCount)
+        var profileArray = profiles.ToArray();
+
+        if (sessionArray.Length < MinimumTrustedSessionCount || profileArray.Length == 0)
             return null;
 
-        var aggregates = AggregateSessions(sessionArray);
+        var comparableSessions = GetComparableTrailingSessions(sessionArray, profileArray);
+
+        if (comparableSessions.Length < MinimumTrustedSessionCount)
+            return null;
+
+        var aggregates = AggregateSessions(comparableSessions);
 
         var requiredPassingSessions = (int)Math.Ceiling(
-            sessionArray.Length * (2d / 3d));
+            comparableSessions.Length * (2d / 3d));
 
         var rankings = new List<DnsProfileRanking>();
 
-        foreach (var profile in profiles)
+        foreach (var profile in profileArray)
         {
             if (profile.Ipv4Servers is null ||
                 profile.Ipv4Servers.Length != 2 ||
@@ -296,10 +316,10 @@ internal static class DnsResolverRanking
                 continue;
             }
 
-            if (first.SessionCount != sessionArray.Length ||
-                second.SessionCount != sessionArray.Length ||
-                first.RequestedCount != sessionArray.Length * SamplesPerResolverSession ||
-                second.RequestedCount != sessionArray.Length * SamplesPerResolverSession)
+            if (first.SessionCount != comparableSessions.Length ||
+                second.SessionCount != comparableSessions.Length ||
+                first.RequestedCount != comparableSessions.Length * SamplesPerResolverSession ||
+                second.RequestedCount != comparableSessions.Length * SamplesPerResolverSession)
             {
                 continue;
             }
@@ -354,13 +374,12 @@ internal static class DnsResolverRanking
                 worstServerJitter,
                 first.SuccessCount + second.SuccessCount,
                 first.RequestedCount + second.RequestedCount,
-                sessionArray.Length,
+                comparableSessions.Length,
                 Math.Min(first.PassingSessionCount, second.PassingSessionCount)));
         }
 
-        // Medyan ana ölçüttür; P95 ve jitter eşitlikte sıralamayı belirler.
-        // Önce iki sunucunun daha kötü P95 ve jitter değerleri,
-        // ardından profilin medyan hızı karşılaştırılır.
+        // Kararlılık önceliklidir: önce en kötü P95, sonra en kötü jitter,
+        // ardından medyan; böylece tek bir hızlı ama dalgalı sunucu profili öne geçemez.
         return rankings
             .OrderBy(ranking => ranking.WorstServerP95Ms)
             .ThenBy(ranking => ranking.WorstServerJitterMs)
@@ -370,4 +389,82 @@ internal static class DnsResolverRanking
             .ThenByDescending(ranking => ranking.SuccessRate)
             .FirstOrDefault();
     }
+
+    private static DnsResolverBenchmarkSession[] GetComparableTrailingSessions(
+        IReadOnlyList<DnsResolverBenchmarkSession> sessions,
+        IReadOnlyList<DnsResolverProfileDefinition> profiles)
+    {
+        if (sessions.Count == 0 || profiles.Count == 0)
+            return Array.Empty<DnsResolverBenchmarkSession>();
+
+        var firstCommonIndex = sessions.Count;
+
+        for (var index = sessions.Count - 1; index >= 0; index--)
+        {
+            if (!profiles.All(profile =>
+                HasCompleteProfileSession(sessions[index], profile)))
+            {
+                break;
+            }
+
+            firstCommonIndex = index;
+        }
+
+        return sessions.Skip(firstCommonIndex).ToArray();
+    }
+
+    private static bool HasCompleteProfileSession(
+        DnsResolverBenchmarkSession session,
+        DnsResolverProfileDefinition profile)
+    {
+        if (session is null ||
+            session.Results is null ||
+            profile is null ||
+            profile.Ipv4Servers is null ||
+            profile.Ipv4Servers.Length != 2 ||
+            profile.Ipv4Servers.Distinct(StringComparer.Ordinal).Count() != 2)
+        {
+            return false;
+        }
+
+        foreach (var server in profile.Ipv4Servers)
+        {
+            var matches = session.Results
+                .Where(result =>
+                    result is not null &&
+                    string.Equals(result.ProfileId, profile.ProfileId, StringComparison.Ordinal) &&
+                    string.Equals(result.Provider, profile.Provider, StringComparison.Ordinal) &&
+                    string.Equals(result.Server, server, StringComparison.Ordinal))
+                .Take(2)
+                .ToArray();
+
+            if (matches.Length != 1)
+                return false;
+
+            var result = matches[0];
+
+            if (result.RequestedCount != SamplesPerResolverSession ||
+                result.Samples is null ||
+                result.Samples.Count != SamplesPerResolverSession ||
+                result.Samples.Any(sample => sample is null))
+            {
+                return false;
+            }
+
+            var sequences = result.Samples
+                .Select(sample => sample.Sequence)
+                .OrderBy(sequence => sequence)
+                .ToArray();
+
+            if (!sequences.SequenceEqual(
+                Enumerable.Range(1, SamplesPerResolverSession)))
+            {
+                return false;
+            }
+        }
+
+        return true;
+    }
+
+
 }

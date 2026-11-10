@@ -1786,6 +1786,7 @@ public partial class MainWindow : Window
             sb.AppendLine(new string('-', 68));
             sb.AppendLine($"Bu ağ için saklanan oturum: {_dnsBenchmarkSessions.Count}/{DnsResolverRanking.MaximumStoredSessions}");
             sb.AppendLine($"Güvenilir profil kararı için gereken en az oturum: {DnsResolverRanking.MinimumTrustedSessionCount}");
+            sb.AppendLine("En iyi DNS kararı, bütün uygulama adaylarının eksiksiz ölçüldüğü en yeni ortak oturum aralığı üzerinden verilir.");
 
             if (!string.IsNullOrWhiteSpace(historyNotice))
                 sb.AppendLine("GEÇMİŞ BİLGİSİ: " + historyNotice);
@@ -1809,7 +1810,7 @@ public partial class MainWindow : Window
             }
 
             var fastestIndividual =
-                DnsResolverRanking.SelectBestReliableIndividual(_dnsBenchmarkSessions);
+                DnsResolverRanking.SelectBestReliableIndividual(_dnsBenchmarkSessions, GetDnsProfileDefinitions());
 
             if (fastestIndividual is not null)
             {
@@ -1976,7 +1977,7 @@ public partial class MainWindow : Window
             : ipv6Supported ? "Mevcut IPv6 DNS ayarı korunacak." : "Bu bağdaştırıcıda IPv6 etkin değil.";
 
         var confirmation = ShowBAYATMessageBox(
-            $"'{selectedAdapter.Name}' bağlantısında {profile.Provider} DNS kullanılacak.\n\nIPv4: {string.Join(", ", profile.Ipv4Servers)}\nIPv6: {ipv6Description}\n\nMevcut IPv4/IPv6 ayarları önce yedeklenecek. Uygulama sonrası Windows ayarları yeniden okunup doğrulanacak. Doğrulama başarısız olursa önceki ayarlar otomatik geri alınacak.\n\nDNS değişikliği oyun pingini düşürmeyebilir. Kurumsal, VPN, ebeveyn denetimi veya özel DNS politikası kullanıyorsanız devam etmeyin. Windows yönetici izni isteyecektir.\n\nDevam edilsin mi?",
+            $"'{selectedAdapter.Name}' bağlantısında {profile.Provider} — {profile.Service} DNS profili kullanılacak.\n\nProfil bilgisi: {profile.ApplicationNotice}\n\nIPv4: {string.Join(", ", profile.Ipv4Servers)}\nIPv6: {ipv6Description}\n\nMevcut IPv4/IPv6 ayarları önce yedeklenecek. Uygulama sonrası Windows ayarları yeniden okunup doğrulanacak. Doğrulama başarısız olursa önceki ayarlar otomatik geri alınacak.\n\nDNS değişikliği oyun pingini düşürmeyebilir. Kurumsal, VPN, ebeveyn denetimi veya özel DNS politikası kullanıyorsanız devam etmeyin. Windows yönetici izni isteyecektir.\n\nDevam edilsin mi?",
             "DNS değişikliğini onayla", MessageBoxButton.YesNo, MessageBoxImage.Warning);
         if (confirmation != MessageBoxResult.Yes) return;
 
@@ -2764,6 +2765,8 @@ public partial class MainWindow : Window
     private sealed record ResolverProfile(
         string ProfileId,
         string Provider,
+        string Service,
+        string ApplicationNotice,
         string[] Ipv4Servers,
         string[] Ipv6Servers)
     {
@@ -2792,6 +2795,8 @@ public partial class MainWindow : Window
                 profiles.Add(new ResolverProfile(
                     group.Key,
                     entries[0].Provider,
+                    entries[0].Service,
+                    entries[0].ApplicationNotice,
                     entries.Select(entry => entry.Server).ToArray(),
                     GetKnownIpv6Servers(group.Key)));
             }
@@ -2811,6 +2816,9 @@ public partial class MainWindow : Window
 
                 "quad9-secure" =>
                     new[] { "2620:fe::fe", "2620:fe::9" },
+
+                "controld-malware" =>
+                    new[] { "2606:1a40::1", "2606:1a40:1::1" },
 
                 _ => Array.Empty<string>()
             };

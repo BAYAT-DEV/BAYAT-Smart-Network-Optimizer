@@ -355,8 +355,10 @@ Test("DNS kataloğu kullanıcı adreslerini, mevcut Cloudflare ve Control D Malw
             .SequenceEqual(new[] { "76.76.10.1", "76.76.2.1" }.OrderBy(ip => ip, StringComparer.Ordinal)),
         "Control D Malware DNS adresleri beklenen değerlerle eşleşmiyor.");
 
-    Check(controlDMalware.All(e => !e.WasProvidedByUser && !e.IsApplicationCandidate),
-        "Control D Malware adresleri yalnızca ölçüm için işaretlenmemiş.");
+    Check(controlDMalware.All(e => !e.WasProvidedByUser && e.IsApplicationCandidate),
+        "Doğrulanmış Control D Malware adresleri uygulama adayı olarak işaretlenmemiş.");
+    Check(controlDMalware.All(e => e.ApplicationNotice.Contains("Malware", StringComparison.Ordinal)),
+        "Control D Malware filtre uyarısı katalogda eksik.");
 
     var addresses = entries.Select(e => e.Server).ToArray();
 
@@ -558,6 +560,103 @@ Test("DNS profile ranking combines three sessions and preserves failures", () =>
     Check(tt40Aggregate.SuccessCount == 42, "The first-session failures were not preserved.");
     Check(tt40Aggregate.RequestedCount == 45, "The three-session request count is incorrect.");
     Check(tt40Aggregate.PassingSessionCount == 3, "The 80% first-session threshold was not applied.");
+});
+
+
+Test("DNS profile ranking compares all providers on the newest common session window", () =>
+{
+    var sessions = new List<DnsResolverBenchmarkSession>();
+
+    for (var index = 0; index < 10; index++)
+    {
+        var existingLatency = Enumerable.Repeat(index < 7 ? 10d : 120d, 15).ToArray();
+        var results = new List<DnsResolverBenchmarkResult>
+        {
+            CreateDnsBenchmarkTestResultWithLatencies(
+                "Existing Provider", "existing-test", "192.0.2.40", true, existingLatency),
+            CreateDnsBenchmarkTestResultWithLatencies(
+                "Existing Provider", "existing-test", "192.0.2.41", true, existingLatency)
+        };
+
+        // Yeni profil yalnızca son üç ölçüm oturumunda kataloğa eklenmiş olsun.
+        if (index >= 7)
+        {
+            var newLatency = Enumerable.Repeat(30d, 15).ToArray();
+            results.Add(CreateDnsBenchmarkTestResultWithLatencies(
+                "New Provider", "new-test", "198.51.100.40", true, newLatency));
+            results.Add(CreateDnsBenchmarkTestResultWithLatencies(
+                "New Provider", "new-test", "198.51.100.41", true, newLatency));
+        }
+
+        sessions.Add(new DnsResolverBenchmarkSession(
+            DateTimeOffset.UtcNow.AddMinutes(index),
+            results));
+    }
+
+    var profiles = new[]
+    {
+        new DnsResolverProfileDefinition(
+            "existing-test", "Existing Provider",
+            new[] { "192.0.2.40", "192.0.2.41" }),
+        new DnsResolverProfileDefinition(
+            "new-test", "New Provider",
+            new[] { "198.51.100.40", "198.51.100.41" })
+    };
+
+    var ranking = DnsResolverRanking.SelectBestProfile(sessions, profiles);
+
+    Check(ranking is not null, "A common-window DNS profile should have been selected.");
+    Check(ranking!.ProfileId == "new-test",
+        "Seven obsolete, faster sessions were allowed to bias a profile with only three common recent sessions.");
+    Check(ranking.SessionCount == 3,
+        "Profile ranking did not use the three newest shared sessions.");
+    Check(ranking.SuccessCount == 90 && ranking.RequestedCount == 90,
+        "Common-window profile totals are incorrect.");
+});
+
+Test("DNS historical Malware measurements use the current verified application policy", () =>
+{
+    var sessions = new List<DnsResolverBenchmarkSession>();
+
+    for (var index = 0; index < 3; index++)
+    {
+        sessions.Add(new DnsResolverBenchmarkSession(
+            DateTimeOffset.UtcNow.AddMinutes(index),
+            new[]
+            {
+                // Eski geçmiş kayıtları, Malware henüz uygulama adayı değilken oluşturulmuştu.
+                CreateDnsBenchmarkTestResult(
+                    "Control D", "controld-malware", "76.76.2.1", false, 25d, 15),
+                CreateDnsBenchmarkTestResult(
+                    "Control D", "controld-malware", "76.76.10.1", false, 26d, 15),
+                CreateDnsBenchmarkTestResult(
+                    "Fallback", "fallback-test", "203.0.113.40", true, 40d, 15),
+                CreateDnsBenchmarkTestResult(
+                    "Fallback", "fallback-test", "203.0.113.41", true, 41d, 15)
+            }));
+    }
+
+    var profiles = new[]
+    {
+        new DnsResolverProfileDefinition(
+            "controld-malware", "Control D",
+            new[] { "76.76.2.1", "76.76.10.1" }),
+        new DnsResolverProfileDefinition(
+            "fallback-test", "Fallback",
+            new[] { "203.0.113.40", "203.0.113.41" })
+    };
+
+    var ranking = DnsResolverRanking.SelectBestProfile(sessions, profiles);
+
+    Check(ranking is not null && ranking.ProfileId == "controld-malware",
+        "Verified historic Control D Malware measurements were discarded due to their old candidate flag.");
+
+    var malwareRows = DnsResolverRanking.AggregateSessions(sessions)
+        .Where(result => result.ProfileId == "controld-malware")
+        .ToArray();
+
+    Check(malwareRows.Length == 2 && malwareRows.All(result => result.IsApplicationCandidate),
+        "Historical Malware rows did not inherit the current catalog eligibility.");
 });
 
 Test("DNS ranking refuses a trusted decision with fewer than three sessions", () =>
