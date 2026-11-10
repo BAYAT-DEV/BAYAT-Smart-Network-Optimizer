@@ -2117,7 +2117,8 @@ public partial class MainWindow : Window
                 {
                     var id = Convert.ToString(item["GUID"], CultureInfo.InvariantCulture);
                     if (Guid.TryParse(id, out var guid) &&
-                        guid.ToString("D").Equals(interfaceId, StringComparison.OrdinalIgnoreCase))
+                        Guid.TryParse(interfaceId, out var adapterGuid) &&
+                        guid == adapterGuid)
                         return Convert.ToBoolean(item["PhysicalAdapter"] ?? false, CultureInfo.InvariantCulture);
                 }
             }
