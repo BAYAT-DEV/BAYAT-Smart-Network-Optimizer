@@ -17,8 +17,8 @@ Resmî sürümler yayımlandığında dosyalar GitHub **Releases** sayfasında b
 
 | Windows mimarisi | Paket |
 |---|---|
-| x64 | `SmartNetworkOptimizer-Setup-1.1.0-win-x64.exe` (kurulum) veya `BAYAT-SmartNetworkOptimizer-v1.1.0-win-x64.zip` |
-| ARM64 | `BAYAT-SmartNetworkOptimizer-v1.1.0-win-arm64.zip` (taşınabilir ZIP) |
+| x64 | `SmartNetworkOptimizer-Setup-1.1.0-win-x64.exe` (kurulum) veya `SmartNetworkOptimizer-win-x64.zip` |
+| ARM64 | `SmartNetworkOptimizer-win-arm64.zip` (taşınabilir ZIP) |
 
 ARM64 cihazlarda x64 kurulum dosyasını kullanmayın. İndirme sayfasında yayımlanmamış dosyalar henüz indirilebilir değildir.
 
@@ -49,8 +49,8 @@ Sonuçlar donanım, sürücü, ağ ve servis sağlayıcısına bağlıdır. Beli
 Windows üzerinde .NET 10 SDK gerekir.
 
 ```powershell
-.publish.ps1 -RuntimeIdentifier win-x64
-.publish.ps1 -RuntimeIdentifier win-arm64
+.\publish.ps1 -RuntimeIdentifier win-x64
+.\publish.ps1 -RuntimeIdentifier win-arm64
 ```
 
 Çıktılar `artifacts` klasöründe oluşturulur. Yayın öncesinde testleri ve SHA256 değerlerini doğrulayın.
