@@ -57,7 +57,7 @@ ARM64 Windows cihazı için:
 
 Çıktılar `artifacts/<runtime>/` klasörüne yazılır; ayrıca ZIP ve SHA256 dosyası oluşturulur. İsteğe bağlı installer için Inno Setup kurup `installer/SmartNetworkOptimizer.iss` dosyasını Inno Setup Compiler ile açın. GitHub deposunda **Actions → Windows build → Run workflow** ile de win-x64/win-arm64 build artifact'ları üretilebilir.
 
-**Gelecek yayınlar için öneri:** Kod imzalama sertifikası bu pakete dahil değildir. Dağıtım öncesinde EXE/installer Authenticode ile imzalanmalı; temiz Windows 11 x64/ARM64 sistemlerinde ve desteklenen Windows 10 LTSC/Enterprise sürümlerinde kurulum, yükseltme, açılış girdisi, ağ analizi ve geri alma testleri tamamlanmalıdır.
+**Gelecek yayınlar için öneri:** Dağıtımdan önce EXE ve kurulum paketi güvenilir bir Authenticode kod imzalama sertifikasıyla imzalanmalı ve temiz Windows sistemlerinde doğrulanmalıdır. Dağıtım öncesinde EXE/installer Authenticode ile imzalanmalı; temiz Windows 11 x64/ARM64 sistemlerinde ve desteklenen Windows 10 LTSC/Enterprise sürümlerinde kurulum, yükseltme, açılış girdisi, ağ analizi ve geri alma testleri tamamlanmalıdır.
 
 ---
 
