@@ -1,6 +1,7 @@
 // Copyright (C) 2026 BAYAT
 // SPDX-License-Identifier: GPL-3.0-only
 // See LICENSE.txt for the full license text.
+using System.ComponentModel;
 using System.IO;
 using Path = System.IO.Path;
 using System.Diagnostics;
@@ -28,6 +29,7 @@ public partial class MainWindow : Window
     private readonly DispatcherTimer _liveTimer = new() { Interval = TimeSpan.FromSeconds(1) };
     private readonly Queue<LivePingSample> _liveSamples = new();
     private bool _livePingInFlight;
+    private bool _isBusy;
     private bool _loadingStartupPreference;
     private readonly string _appDataDir = Path.Combine(
         Environment.GetFolderPath(Environment.SpecialFolder.LocalApplicationData),
@@ -86,6 +88,7 @@ public partial class MainWindow : Window
         UpdateRestoreButton();
         UpdateNicRestoreButton();
         UpdateAbButtons();
+        UpdateDnsButtons();
     }
 
     private async void LiveStartButton_Click(object sender, RoutedEventArgs e)
@@ -1829,8 +1832,8 @@ public partial class MainWindow : Window
             AppendLine(sb.ToString());
 
             StatusText.Text = fastestProfile is null
-                ? $"DNS ölçümü tamamlandı. Güvenilir profil için {_dnsBenchmarkSessions.Count}/{DnsResolverRanking.MinimumTrustedSessionCount} oturum mevcut; DNS değişikliği devre dışı."
-                : $"DNS ölçümü tamamlandı. Profil adayı: {fastestProfile.Provider}; medyan {fastestProfile.MedianAverageMs:0.00} ms, en yüksek sunucu P95 {fastestProfile.WorstServerP95Ms:0.00} ms. DNS değişikliği devre dışı.";
+                ? $"DNS ölçümü tamamlandı. Güvenilir profil için {_dnsBenchmarkSessions.Count}/{DnsResolverRanking.MinimumTrustedSessionCount} oturum mevcut; yeterli kanıt oluştuğunda en iyi profil düğmesi açılır."
+                : $"DNS ölçümü tamamlandı. Güvenilir profil adayı: {fastestProfile.Provider}; medyan {fastestProfile.MedianAverageMs:0.00} ms, en yüksek sunucu P95 {fastestProfile.WorstServerP95Ms:0.00} ms. Uygulama kullanıcı onayı ve Windows yönetici izni gerektirir.";
         }
         catch (Exception ex)
         {
@@ -1840,7 +1843,7 @@ public partial class MainWindow : Window
         finally
         {
             SetBusy(false);
-            UpdateRestoreButton();
+            UpdateDnsButtons();
         }
     }
     private async void ApplyBestDnsButton_Click(object sender, RoutedEventArgs e)
@@ -2255,14 +2258,12 @@ public partial class MainWindow : Window
 
     private void SetBusy(bool busy, string? status = null)
     {
+        _isBusy = busy;
         ScanButton.IsEnabled = !busy;
         PingButton.IsEnabled = !busy;
-        FlushButton.IsEnabled = false;
         RecommendationsButton.IsEnabled = !busy;
         ExportButton.IsEnabled = !busy;
-        DnsButton.IsEnabled = false;
-        RestoreButton.IsEnabled = false;
-        BenchmarkDnsButton.IsEnabled = !busy;
+        BenchmarkDnsButton.IsEnabled = !busy && IsUsableDnsAdapter(_activeAdapter);
         GameTestButton.IsEnabled = !busy;
         NicPropertiesButton.IsEnabled = !busy;
         DiscoverGameConnectionsButton.IsEnabled = !busy;
@@ -2279,10 +2280,37 @@ public partial class MainWindow : Window
         GamePortText.IsEnabled = !busy;
         LiveClearButton.IsEnabled = !busy && _liveSamples.Count > 0;
         LiveExportButton.IsEnabled = !busy && _liveSamples.Count > 0;
-        ApplyBestDnsButton.IsEnabled = false;
+        UpdateDnsButtons();
         if (status is not null) StatusText.Text = status;
     }
-    private void UpdateRestoreButton() => RestoreButton.IsEnabled = false;
+
+    private void UpdateDnsButtons()
+    {
+        var hasActiveAdapter = IsUsableDnsAdapter(_activeAdapter);
+        var backupExists = File.Exists(BackupPath);
+
+        FlushButton.IsEnabled = !_isBusy;
+        DnsButton.IsEnabled = !_isBusy && hasActiveAdapter && !backupExists;
+        BenchmarkDnsButton.IsEnabled = !_isBusy && hasActiveAdapter;
+        RestoreButton.IsEnabled = !_isBusy && backupExists;
+
+        var hasTrustedProfile = false;
+        if (hasActiveAdapter && !backupExists &&
+            _dnsBenchmarkSessions.Count >= DnsResolverRanking.MinimumTrustedSessionCount)
+        {
+            try
+            {
+                hasTrustedProfile = DnsResolverRanking.SelectBestProfile(
+                    _dnsBenchmarkSessions, GetDnsProfileDefinitions()) is not null;
+            }
+            catch { hasTrustedProfile = false; }
+        }
+
+        ApplyBestDnsButton.IsEnabled = !_isBusy && hasActiveAdapter && !backupExists && hasTrustedProfile;
+    }
+
+    private void UpdateRestoreButton() => UpdateDnsButtons();
+
     private void UpdateNicRestoreButton() => RestoreNicSettingsButton.IsEnabled = false;
 
     private sealed record NicSnapshot(string InterfaceGuid, string InterfaceName, string InterfaceDescription,
