@@ -10,6 +10,8 @@
     <Nullable>enable</Nullable>
     <ImplicitUsings>enable</ImplicitUsings>
     <AssemblyName>SmartNetworkOptimizer</AssemblyName>
+    <Company>BAYAT</Company>
+    <Product>SmartNetworkOptimizer</Product>
     <RootNamespace>SmartNetworkOptimizer</RootNamespace>
     <Version>1.1.0</Version>
     <AssemblyVersion>1.1.0.0</AssemblyVersion>
