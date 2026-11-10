@@ -10,8 +10,8 @@ Yalnızca resmî GitHub deposunun **Releases** bölümünde yayımlanan dosyalar
 
 https://github.com/BAYAT-DEV/BAYAT-Smart-Network-Optimizer/releases
 
-- **Windows x64:** `SmartNetworkOptimizer-Setup-1.1.0-win-x64.exe` kurulum paketi veya `BAYAT-SmartNetworkOptimizer-v1.1.0-win-x64.zip` taşınabilir paket.
-- **Windows ARM64:** `BAYAT-SmartNetworkOptimizer-v1.1.0-win-arm64.zip` paketi. x64 kurulum sihirbazı ARM64 için değildir.
+- **Windows x64:** `SmartNetworkOptimizer-Setup-1.1.0-win-x64.exe` kurulum paketi veya `SmartNetworkOptimizer-win-x64.zip` taşınabilir paket.
+- **Windows ARM64:** `SmartNetworkOptimizer-win-arm64.zip` paketi. x64 kurulum sihirbazı ARM64 için değildir.
 
 Dosya adları, sürüm ve mimari bilgisiyle eşleşmelidir. Başka sitelerden veya yeniden yüklenmiş dosyalardan indirmeyin.
 
@@ -28,7 +28,7 @@ Bu uyarıyı geçmeniz, “Yine de çalıştır” seçeneğini kullanmanız vey
 PowerShell'de indirdiğiniz dosyanın bulunduğu klasöre geçin ve örneğin x64 ZIP için çalıştırın:
 
 ```powershell
-Get-FileHash .\BAYAT-SmartNetworkOptimizer-v1.1.0-win-x64.zip -Algorithm SHA256
+Get-FileHash .\SmartNetworkOptimizer-win-x64.zip -Algorithm SHA256
 ```
 
 Çıktıdaki SHA256 değerini GitHub Release sayfasındaki ilgili `.sha256` dosyasındaki değerle karakter karakter karşılaştırın. Değerler eşleşmiyorsa dosyayı kullanmayın.
