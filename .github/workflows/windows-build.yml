@@ -25,6 +25,10 @@ jobs:
   publish:
     name: Publish ${{ matrix.rid }}
     needs: test
+    permissions:
+      contents: read
+      id-token: write
+      attestations: write
     runs-on: windows-latest
     strategy:
       fail-fast: false
@@ -60,6 +64,11 @@ jobs:
           Compress-Archive -Path "artifacts/${{ matrix.rid }}/*" -DestinationPath "artifacts/$name.zip" -CompressionLevel Optimal
           $hash = (Get-FileHash "artifacts/$name.zip" -Algorithm SHA256).Hash.ToLowerInvariant()
           Set-Content -Path "artifacts/$name.zip.sha256" -Value "$hash  $name.zip" -Encoding ascii
+
+      - name: Generate ZIP provenance attestation
+        uses: actions/attest@1e69f48acb82d1966a394da916b4c1698aa569d6
+        with:
+          subject-path: "${{ github.workspace }}/artifacts/SmartNetworkOptimizer-${{ matrix.rid }}.zip"
 
       - name: Upload build artifact
         uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9
