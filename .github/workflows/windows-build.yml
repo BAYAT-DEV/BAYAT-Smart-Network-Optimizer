@@ -65,10 +65,35 @@ jobs:
           $hash = (Get-FileHash "artifacts/$name.zip" -Algorithm SHA256).Hash.ToLowerInvariant()
           Set-Content -Path "artifacts/$name.zip.sha256" -Value "$hash  $name.zip" -Encoding ascii
 
+      - name: Build x64 installer
+        if: matrix.rid == 'win-x64'
+        shell: pwsh
+        run: |
+          choco install innosetup --yes --no-progress
+          $iscc = @(
+            "${env:ProgramFiles(x86)}\Inno Setup 6\ISCC.exe",
+            "${env:ProgramFiles}\Inno Setup 6\ISCC.exe"
+          ) | Where-Object { Test-Path -LiteralPath $_ } | Select-Object -First 1
+          if (-not $iscc) { throw 'Inno Setup Compiler (ISCC.exe) bulunamadı.' }
+          Expand-Archive -LiteralPath "artifacts/SmartNetworkOptimizer-win-x64.zip" -DestinationPath "artifacts/win-x64" -Force
+          New-Item -ItemType Directory -Force -Path "artifacts/installer" | Out-Null
+          & $iscc "installer/SmartNetworkOptimizer.iss"
+          if ($LASTEXITCODE -ne 0) { throw "Inno Setup derlemesi başarısız: $LASTEXITCODE" }
+          $setup = Get-ChildItem "artifacts/installer" -Filter '*.exe' -File | Select-Object -First 1
+          if (-not $setup) { throw 'Kurulum EXE dosyası üretilmedi.' }
+          $hash = (Get-FileHash -LiteralPath $setup.FullName -Algorithm SHA256).Hash.ToLowerInvariant()
+          Set-Content -LiteralPath "$($setup.FullName).sha256" -Value "$hash  $($setup.Name)" -Encoding ascii
+
       - name: Generate ZIP provenance attestation
         uses: actions/attest@1e69f48acb82d1966a394da916b4c1698aa569d6
         with:
           subject-path: "${{ github.workspace }}/artifacts/SmartNetworkOptimizer-${{ matrix.rid }}.zip"
+
+      - name: Generate installer provenance attestation
+        if: matrix.rid == 'win-x64'
+        uses: actions/attest@1e69f48acb82d1966a394da916b4c1698aa569d6
+        with:
+          subject-path: "${{ github.workspace }}/artifacts/installer/*.exe"
 
       - name: Upload build artifact
         uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9
@@ -77,6 +102,8 @@ jobs:
           path: |
             artifacts/SmartNetworkOptimizer-${{ matrix.rid }}.zip
             artifacts/SmartNetworkOptimizer-${{ matrix.rid }}.zip.sha256
+            artifacts/installer/*.exe
+            artifacts/installer/*.exe.sha256
           if-no-files-found: error
 
   publish-release:
@@ -95,7 +122,7 @@ jobs:
         shell: bash
         run: |
           mkdir -p release-files
-          find release-assets -type f \( -name '*.zip' -o -name '*.sha256' \) -print0 | xargs -0 -I{} cp "{}" release-files/
+          find release-assets -type f \( -name '*.zip' -o -name '*.exe' -o -name '*.sha256' \) -print0 | xargs -0 -I{} cp "{}" release-files/
           test -n "$(find release-files -type f -name '*.zip' -print -quit)"
       - name: Create GitHub release
         uses: softprops/action-gh-release@efb35369e0ad2afab669f228072c1b0d510eae64
