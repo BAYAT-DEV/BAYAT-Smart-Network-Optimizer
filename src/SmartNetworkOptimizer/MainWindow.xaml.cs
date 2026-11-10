@@ -1848,7 +1848,17 @@ public partial class MainWindow : Window
     }
     private async void ApplyBestDnsButton_Click(object sender, RoutedEventArgs e)
     {
-        
+        if (_activeAdapter is null ||
+            string.IsNullOrWhiteSpace(_dnsBenchmarkFingerprint) ||
+            !string.Equals(_dnsBenchmarkFingerprint, BuildDnsNetworkFingerprint(_activeAdapter), StringComparison.Ordinal))
+        {
+            _dnsBenchmarkSessions.Clear();
+            _resolverBenchmarks.Clear();
+            _dnsBenchmarkFingerprint = null;
+            UpdateDnsButtons();
+            ShowBAYATMessageBox("DNS ölçümünden sonra ağ kimliği değişti. Eski sonuçlar uygulanmayacak; önce aynı bağlantıda yeni DNS testi yapın.", "DNS güvenlik kontrolü", MessageBoxButton.OK, MessageBoxImage.Warning);
+            return;
+        }
 
         var fastest = DnsResolverRanking.SelectBestProfile(
             _dnsBenchmarkSessions,
