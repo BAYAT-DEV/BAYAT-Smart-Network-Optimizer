@@ -1,7 +1,3 @@
-<p align="center">
-  <img src="https://raw.githubusercontent.com/BAYAT-DEV/BAYAT-Smart-Network-Optimizer/main/src/SmartNetworkOptimizer/Assets/BAYAT.ico" alt="BAYAT Smart Network Optimizer" width="160">
-</p>
-
 # BAYAT Smart Network Optimizer
 
 <p align="center"><img src="docs/assets/github-logo.png" alt="BAYAT Smart Network Optimizer" width="180"></p>
@@ -9,13 +5,13 @@
 Windows için ağ bağlantısı, bağdaştırıcı envanteri ve bağlantı ölçümlerini görüntülemeye yardımcı olan WPF masaüstü uygulaması.
 
 - **Yayıncı:** BAYAT
-- **Mevcut proje sürümü:** 1.1.0
+- **Mevcut proje sürümü:** 1.1.1
 - **Hedef:** .NET 10 / WPF
 - **Lisans:** GPL-3.0-only
 
 ## İndirme
 
-Resmî sürümler yayımlandığında dosyalar GitHub **Releases** sayfasında bulunur:
+Yayımlanmış resmî sürüm dosyaları GitHub **Releases** sayfasında bulunur:
 
 **[GitHub Releases — İndir](https://github.com/BAYAT-DEV/BAYAT-Smart-Network-Optimizer/releases)**
 
@@ -23,7 +19,7 @@ Resmî sürümler yayımlandığında dosyalar GitHub **Releases** sayfasında b
 
 | Windows mimarisi | Paket |
 |---|---|
-| x64 | `SmartNetworkOptimizer-Setup-1.1.0-win-x64.exe` (kurulum) veya `SmartNetworkOptimizer-win-x64.zip` |
+| x64 | `SmartNetworkOptimizer-Setup-1.1.1-win-x64.exe` (kurulum) veya `SmartNetworkOptimizer-win-x64.zip` |
 | ARM64 | `SmartNetworkOptimizer-win-arm64.zip` (taşınabilir ZIP) |
 
 ARM64 cihazlarda x64 kurulum dosyasını kullanmayın. İndirme sayfasında yayımlanmamış dosyalar henüz indirilebilir değildir.
