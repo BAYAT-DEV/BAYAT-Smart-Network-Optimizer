@@ -1649,7 +1649,7 @@ public partial class MainWindow : Window
 
     private async void DnsButton_Click(object sender, RoutedEventArgs e)
     {
-        if (BlockPrivilegedNetworkChanges()) return;
+        
         await ApplyDnsProfileAsync(ResolverProfile.Cloudflare);
     }
 
@@ -1845,7 +1845,7 @@ public partial class MainWindow : Window
     }
     private async void ApplyBestDnsButton_Click(object sender, RoutedEventArgs e)
     {
-        if (BlockPrivilegedNetworkChanges()) return;
+        
 
         var fastest = DnsResolverRanking.SelectBestProfile(
             _dnsBenchmarkSessions,
@@ -1884,7 +1884,7 @@ public partial class MainWindow : Window
     }
     private async Task ApplyDnsProfileAsync(ResolverProfile profile)
     {
-        if (BlockPrivilegedNetworkChanges()) return;
+        
         if (!OperatingSystem.IsWindows()) return;
         if (_activeAdapter is null)
         {
@@ -2036,7 +2036,7 @@ public partial class MainWindow : Window
 
     private async void RestoreButton_Click(object sender, RoutedEventArgs e)
     {
-        if (BlockPrivilegedNetworkChanges()) return;
+        
         if (!File.Exists(BackupPath))
         {
             ShowBAYATMessageBox("Geri yüklenecek DNS yedeği bulunamadı.", "DNS geri yükleme");
@@ -2064,7 +2064,7 @@ public partial class MainWindow : Window
 
     private async void FlushButton_Click(object sender, RoutedEventArgs e)
     {
-        if (BlockPrivilegedNetworkChanges()) return;
+        
         var confirm = ShowBAYATMessageBox("Windows DNS önbelleği temizlenecek. Bu işlem kayıtlı DNS sunucularını değiştirmez. Devam edilsin mi?", "DNS önbelleği", MessageBoxButton.YesNo, MessageBoxImage.Question);
         if (confirm != MessageBoxResult.Yes) return;
         SetBusy(true, "DNS önbelleği temizleniyor...");
@@ -2188,10 +2188,44 @@ public partial class MainWindow : Window
 
     private static string PsQuote(string value) => "'" + value.Replace("'", "''", StringComparison.Ordinal) + "'";
 
-    private static Task RunElevatedPowerShellAsync(string script)
+    private static async Task RunElevatedPowerShellAsync(string script)
     {
-        return Task.FromException(new NotSupportedException("Yönetici yetkisiyle sistem değişikliği bu sürümde güvenlik nedeniyle devre dışıdır."));
+        if (!OperatingSystem.IsWindows()) throw new PlatformNotSupportedException("Yönetici işlemleri yalnızca Windows'ta desteklenir.");
+        if (string.IsNullOrWhiteSpace(script)) throw new ArgumentException("Yönetici işlem betiği boş olamaz.", nameof(script));
+
+        // PowerShell kodu diske yazılmaz; UAC ile yükseltilen sürece Base64/Unicode argümanıyla aktarılır.
+        var wrapped = "$ErrorActionPreference = 'Stop'\ntry {\n" + script + "\nexit 0\n} catch { [Console]::Error.WriteLine($_.Exception.ToString()); exit 1 }";
+        var encoded = Convert.ToBase64String(Encoding.Unicode.GetBytes(wrapped));
+        var powershell = Path.Combine(Environment.SystemDirectory, "WindowsPowerShell", "v1.0", "powershell.exe");
+        if (!File.Exists(powershell)) throw new FileNotFoundException("Windows PowerShell bulunamadı.", powershell);
+
+        var startInfo = new ProcessStartInfo
+        {
+            FileName = powershell,
+            Arguments = "-NoLogo -NoProfile -NonInteractive -ExecutionPolicy Bypass -EncodedCommand " + encoded,
+            UseShellExecute = true,
+            Verb = "runas",
+            WindowStyle = ProcessWindowStyle.Hidden
+        };
+
+        try
+        {
+            using var process = Process.Start(startInfo) ?? throw new InvalidOperationException("Yönetici PowerShell işlemi başlatılamadı.");
+            using var timeout = new CancellationTokenSource(TimeSpan.FromMinutes(2));
+            try { await process.WaitForExitAsync(timeout.Token); }
+            catch (OperationCanceledException)
+            {
+                try { if (!process.HasExited) process.Kill(entireProcessTree: true); } catch { }
+                throw new TimeoutException("Yönetici işlemi iki dakika içinde tamamlanmadı; işlem durduruldu.");
+            }
+            if (process.ExitCode != 0) throw new InvalidOperationException("Windows yönetici işlemi başarısız oldu. Sistem değişikliği doğrulanmadı.");
+        }
+        catch (Win32Exception ex) when (ex.NativeErrorCode == 1223)
+        {
+            throw new OperationCanceledException("Windows yönetici izni isteği kullanıcı tarafından iptal edildi.", ex);
+        }
     }
+
     private static string QuoteArgument(string value) => "\"" + value.Replace("\"", "\\\"", StringComparison.Ordinal) + "\"";
 
     private static void QueryWmi(StringBuilder sb, string query, Func<ManagementObject, string> formatter)
