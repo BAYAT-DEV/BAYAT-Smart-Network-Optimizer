@@ -324,7 +324,7 @@ Test("Eksik tablo başlığı ve geçersiz kayıt sayısı reddedilir", () =>
         () => GameConnectionDiscovery.ParseTcp4Table(new byte[] { 1, 0, 0, 0 }),
         "Olmayan TCP4 kaydı kabul edildi.");
 });
-Test("DNS kataloğu 41 kullanıcı adresini ve iki mevcut Cloudflare adresini içerir", () =>
+Test("DNS kataloğu kullanıcı adreslerini, mevcut Cloudflare ve Control D Malware adreslerini içerir", () =>
 {
     var entries = DnsResolverCatalog.All;
 
@@ -334,8 +334,29 @@ Test("DNS kataloğu 41 kullanıcı adresini ve iki mevcut Cloudflare adresini i�
     Check(entries.Count(e => e.WasProvidedByUser) == DnsResolverCatalog.UserProvidedServerCount,
         "Kullanıcının verdiği 41 DNS adresinin sayısı eşleşmiyor.");
 
-    Check(entries.Count(e => !e.WasProvidedByUser) == DnsResolverCatalog.ExistingBuiltInServerCount,
+    Check(entries.Count(e => !e.WasProvidedByUser) ==
+          DnsResolverCatalog.ExistingBuiltInServerCount + DnsResolverCatalog.AdditionalVerifiedServerCount,
+        "Doğrulanmış yerleşik DNS adreslerinin sayısı eşleşmiyor.");
+
+    Check(entries.Count(e =>
+            !e.WasProvidedByUser &&
+            string.Equals(e.Provider, "Cloudflare", StringComparison.Ordinal)) ==
+          DnsResolverCatalog.ExistingBuiltInServerCount,
         "Mevcut Cloudflare adresleri korunmadı.");
+
+    var controlDMalware = entries
+        .Where(e => string.Equals(e.ProfileId, "controld-malware", StringComparison.Ordinal))
+        .ToArray();
+
+    Check(controlDMalware.Length == DnsResolverCatalog.AdditionalVerifiedServerCount,
+        "Control D Malware profili iki DNS adresi içermiyor.");
+
+    Check(controlDMalware.Select(e => e.Server).OrderBy(ip => ip, StringComparer.Ordinal)
+            .SequenceEqual(new[] { "76.76.10.1", "76.76.2.1" }.OrderBy(ip => ip, StringComparer.Ordinal)),
+        "Control D Malware DNS adresleri beklenen değerlerle eşleşmiyor.");
+
+    Check(controlDMalware.All(e => !e.WasProvidedByUser && !e.IsApplicationCandidate),
+        "Control D Malware adresleri yalnızca ölçüm için işaretlenmemiş.");
 
     var addresses = entries.Select(e => e.Server).ToArray();
 
@@ -938,7 +959,7 @@ Test("DNS history persistence round-trips all catalog entries and preserves prev
     Check(
         loaded.Sessions.All(session =>
             session.Results.Count == DnsResolverCatalog.ExpectedCount),
-        "Oturumlardan birinde katalogdaki 43 DNS adresinin tamamı bulunmuyor.");
+        $"Oturumlardan birinde katalogdaki {DnsResolverCatalog.ExpectedCount} DNS adresinin tamamı bulunmuyor.");
 
     Check(
         loaded.Sessions.All(session =>
