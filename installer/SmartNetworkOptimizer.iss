@@ -1,5 +1,5 @@
 #define MyAppName "BAYAT Smart Network Optimizer"
-#define MyAppVersion "1.1.0"
+#define MyAppVersion "1.1.1"
 #define MyAppPublisher "BAYAT"
 #define MyAppExeName "SmartNetworkOptimizer.exe"
 
@@ -23,7 +23,7 @@ ArchitecturesInstallIn64BitMode=x64
 UninstallDisplayIcon={app}\{#MyAppExeName}
 
 [Tasks]
-Name: "desktopicon"; Description: "Masaüstüne kısayol oluştur"; GroupDescription: "Ek kısayollar:"; Flags: unchecked
+Name: "desktopicon"; Description: "MasaÃ¼stÃ¼ne kÄ±sayol oluÅŸtur"; GroupDescription: "Ek kÄ±sayollar:"; Flags: unchecked
 
 [Files]
 Source: "..\artifacts\win-x64\*"; DestDir: "{app}"; Flags: ignoreversion recursesubdirs createallsubdirs
@@ -33,7 +33,7 @@ Name: "{autoprograms}\{#MyAppName}"; Filename: "{app}\{#MyAppExeName}"
 Name: "{autodesktop}\{#MyAppName}"; Filename: "{app}\{#MyAppExeName}"; Tasks: desktopicon
 
 [Run]
-Filename: "{app}\{#MyAppExeName}"; Description: "{#MyAppName} uygulamasını başlat"; Flags: postinstall nowait skipifsilent
+Filename: "{app}\{#MyAppExeName}"; Description: "{#MyAppName} uygulamasÄ±nÄ± baÅŸlat"; Flags: postinstall nowait skipifsilent
 
 [Code]
 procedure CurUninstallStepChanged(CurUninstallStep: TUninstallStep);
