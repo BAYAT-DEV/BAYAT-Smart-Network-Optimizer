@@ -183,11 +183,11 @@ internal static class DnsResolverHistoryStore
                     throw new InvalidDataException("DNS geçmişinde bilinmeyen veya yinelenen sunucu var.");
                 }
 
+                // Application eligibility and notices are mutable catalog policy, not measurement identity.
+                // Preserve historical values; ranking resolves current policy from the active catalog.
                 if (result.Provider != definition.Provider ||
                     result.ProfileId != definition.ProfileId ||
-                    result.Service != definition.Service ||
-                    result.IsApplicationCandidate != definition.IsApplicationCandidate ||
-                    result.ApplicationNotice != definition.ApplicationNotice)
+                    result.Service != definition.Service)
                 {
                     throw new InvalidDataException("DNS geçmişindeki katalog bilgileri uyuşmuyor.");
                 }

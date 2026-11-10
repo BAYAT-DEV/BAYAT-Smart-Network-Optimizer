@@ -1163,6 +1163,41 @@ Test("DNS history persistence round-trips all catalog entries and preserves prev
                 StringComparer.Ordinal)),
         "Eski DNS oturumunda yeni eklenenler dışında adres eksik.");
 
+    // A catalog policy change must not invalidate prior measurements.
+    const string legacyMalwareNotice = "Legacy catalog policy: not an application candidate.";
+    var legacyPolicyResults = firstSession.Results
+        .Select(result =>
+            string.Equals(result.ProfileId, "controld-malware", StringComparison.Ordinal)
+                ? result with
+                {
+                    IsApplicationCandidate = false,
+                    ApplicationNotice = legacyMalwareNotice
+                }
+                : result)
+        .ToArray();
+
+    var legacyPolicySession = new DnsResolverBenchmarkSession(
+        firstSession.CompletedAt,
+        legacyPolicyResults);
+
+    var legacyPolicyPath = Path.Combine(testRoot, "legacy-application-policy-history.json");
+    var legacyPolicyDocument = new DnsResolverHistoryDocument(
+        DnsResolverHistoryStore.CurrentSchemaVersion,
+        fingerprint,
+        new List<DnsResolverBenchmarkSession> { legacyPolicySession });
+
+    DnsResolverHistoryStore.Save(legacyPolicyPath, legacyPolicyDocument);
+    var legacyPolicyLoaded = DnsResolverHistoryStore.Load(legacyPolicyPath, fingerprint);
+    var persistedLegacyMalware = legacyPolicyLoaded.Sessions.Single().Results
+        .Where(result => string.Equals(result.ProfileId, "controld-malware", StringComparison.Ordinal))
+        .ToArray();
+
+    Check(
+        persistedLegacyMalware.Length == 2 &&
+        persistedLegacyMalware.All(result =>
+            !result.IsApplicationCandidate &&
+            result.ApplicationNotice == legacyMalwareNotice),
+        "Historical policy metadata must remain readable and unchanged.");
     Console.WriteLine("DNS geçmiş test alanı: " + testRoot);
 });
 Console.WriteLine($"TEST SONUCU: {passed} başarılı, {failed} başarısız.");
